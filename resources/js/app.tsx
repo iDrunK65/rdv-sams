@@ -1,6 +1,7 @@
 import '../css/app.css';
 
-import { createInertiaApp } from '@inertiajs/react';
+import { HeroUIProvider } from '@heroui/react';
+import { createInertiaApp, router } from '@inertiajs/react';
 import { resolvePageComponent } from 'laravel-vite-plugin/inertia-helpers';
 import { StrictMode } from 'react';
 import { createRoot } from 'react-dom/client';
@@ -21,7 +22,9 @@ createInertiaApp({
 
         root.render(
             <StrictMode>
-                <App {...props} />
+                <HeroUIProvider navigate={(href) => router.visit(String(href))}>
+                    <App {...props} />
+                </HeroUIProvider>
             </StrictMode>,
         );
     },
