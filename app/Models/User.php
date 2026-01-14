@@ -46,7 +46,6 @@ class User extends Authenticatable
     {
         return [
             'password' => 'hashed',
-            'specialtyIds' => 'array',
             'isActive' => 'boolean',
             'two_factor_confirmed_at' => 'datetime',
         ];
@@ -71,7 +70,8 @@ class User extends Authenticatable
     {
         return $this->hasMany(AvailabilityException::class, 'doctorId');
     }
-public function setRolesAttribute(?array $value): void
+
+    public function setRolesAttribute(?array $value): void
     {
         if ($value === null) {
             $this->attributes['roles'] = [];

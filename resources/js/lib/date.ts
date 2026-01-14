@@ -5,7 +5,7 @@ dayjs.extend(utc);
 
 export const formatDate = (value?: string | Date | null): string => {
     if (!value) return '';
-    return dayjs(value).format('DD/MM/YYYY');
+    return dayjs(value).format('YYYY-MM-DD');
 };
 
 export const formatTime = (value?: string | Date | null): string => {
@@ -15,7 +15,7 @@ export const formatTime = (value?: string | Date | null): string => {
 
 export const formatDateTime = (value?: string | Date | null): string => {
     if (!value) return '';
-    return dayjs(value).format('DD/MM/YYYY HH:mm');
+    return dayjs(value).format('YYYY-MM-DD HH:mm');
 };
 
 export const toDateTimeLocal = (value?: string | Date | null): string => {
