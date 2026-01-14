@@ -19,7 +19,6 @@ class BookingToken extends Model
      * @var list<string>
      */
     protected $fillable = [
-        'tokenHash',
         'doctorId',
         'calendarScope',
         'calendarId',
@@ -29,6 +28,7 @@ class BookingToken extends Model
         'usedMeta',
         'createdByUserId',
     ];
+
 
     protected function casts(): array
     {

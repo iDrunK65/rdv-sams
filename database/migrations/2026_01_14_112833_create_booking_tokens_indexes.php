@@ -3,6 +3,7 @@
 declare(strict_types=1);
 
 use Illuminate\Database\Migrations\Migration;
+use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Schema;
 use MongoDB\Laravel\Schema\Blueprint;
 
@@ -12,6 +13,17 @@ return new class extends Migration
 
     public function up(): void
     {
+        $col = DB::connection('mongodb')->getMongoDB()->selectCollection('booking_tokens');
+        try {
+            $col->dropIndex('booking_tokens_tokenHash_unique');
+            $col->dropIndex('booking_tokens_expiresAt_ttl');
+            $col->dropIndex('booking_tokens_doctor_expiresAt');
+            $col->dropIndex('booking_tokens_calendar_idx');
+            $col->dropIndex('booking_tokens_specialty_idx');
+            $col->dropIndex('booking_tokens_usedAt_idx');
+        } catch (\Throwable $e) {
+        }
+
         Schema::create('booking_tokens', function (Blueprint $collection) {
             $collection->index(
                 'tokenHash',
@@ -30,7 +42,6 @@ return new class extends Migration
 
             $collection->index(['calendarId' => 1], name: 'bt_calendar_idx');
             $collection->index(['specialtyId' => 1], name: 'bt_specialty_idx');
-
             $collection->index(['usedAt' => 1], name: 'bt_usedat_idx');
         });
     }
