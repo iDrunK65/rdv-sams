@@ -3,47 +3,64 @@
 namespace App\Http\Controllers\Api\Appointments;
 
 use App\Http\Controllers\Controller;
-use Illuminate\Http\Request;
+use App\Http\Requests\Appointments\TransferAppointmentRequest;
+use App\Models\Appointment;
+use App\Models\User;
+use App\Services\AppointmentService;
+use App\Services\AuditService;
+use Illuminate\Http\JsonResponse;
+use MongoDB\BSON\ObjectId;
 
 class AppointmentTransferController extends Controller
 {
-    /**
-     * Display a listing of the resource.
-     */
-    public function index()
-    {
-        //
+    public function __construct(
+        private AppointmentService $appointmentService,
+        private AuditService $auditService
+    ) {
     }
 
-    /**
-     * Store a newly created resource in storage.
-     */
-    public function store(Request $request)
+    public function store(TransferAppointmentRequest $request, string $id): JsonResponse
     {
-        //
-    }
+        /** @var User $user */
+        $user = $request->user();
+        $appointment = Appointment::query()->where('_id', new ObjectId($id))->first();
+        if (! $appointment) {
+            return response()->json(['message' => 'Appointment not found'], 404);
+        }
 
-    /**
-     * Display the specified resource.
-     */
-    public function show(string $id)
-    {
-        //
-    }
+        if (! $this->isAdmin($user) && (string) $appointment->doctorId !== $user->getKey()) {
+            return response()->json(['message' => 'Forbidden'], 403);
+        }
 
-    /**
-     * Update the specified resource in storage.
-     */
-    public function update(Request $request, string $id)
-    {
-        //
-    }
+        $data = $request->validated();
+        $toDoctorId = $data['toDoctorId'];
+        $startAt = $appointment->startAt->copy()->utc();
+        $endAt = $appointment->endAt->copy()->utc();
 
-    /**
-     * Remove the specified resource from storage.
-     */
-    public function destroy(string $id)
-    {
-        //
+        if ($this->appointmentService->hasOverlap($toDoctorId, $startAt, $endAt, $id)) {
+            return response()->json([
+                'message' => 'Overlap detected',
+                'errors' => ['toDoctorId' => ['Appointment overlaps with existing booking']],
+            ], 422);
+        }
+
+        $appointment->transfer = [
+            'fromDoctorId' => (string) $appointment->doctorId,
+            'toDoctorId' => $toDoctorId,
+            'reason' => $data['reason'] ?? null,
+            'transferredAt' => now('UTC'),
+        ];
+        $appointment->doctorId = $toDoctorId;
+        $appointment->save();
+
+        $this->auditService->log($user, 'appointment_transferred', 'appointment', (string) $appointment->getKey(), [
+            'fromDoctorId' => (string) $appointment->transfer['fromDoctorId'],
+            'toDoctorId' => $toDoctorId,
+        ]);
+
+        return response()->json([
+            'message' => 'Appointment transferred',
+            'data' => $appointment,
+        ]);
     }
 }

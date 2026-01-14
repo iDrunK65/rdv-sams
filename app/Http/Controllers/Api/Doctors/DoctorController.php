@@ -3,47 +3,65 @@
 namespace App\Http\Controllers\Api\Doctors;
 
 use App\Http\Controllers\Controller;
+use App\Models\User;
+use Illuminate\Http\JsonResponse;
 use Illuminate\Http\Request;
+use MongoDB\BSON\ObjectId;
 
 class DoctorController extends Controller
 {
     /**
      * Display a listing of the resource.
      */
-    public function index()
+    public function index(): JsonResponse
     {
-        //
-    }
+        $doctors = User::query()
+            ->where('isActive', true)
+            ->where('roles', 'doctor')
+            ->get();
 
-    /**
-     * Store a newly created resource in storage.
-     */
-    public function store(Request $request)
-    {
-        //
+        return response()->json([
+            'message' => 'Doctors loaded',
+            'data' => $doctors,
+        ]);
     }
 
     /**
      * Display the specified resource.
      */
-    public function show(string $id)
+    public function show(string $doctorId): JsonResponse
     {
-        //
+        $doctor = User::query()->where('_id', new ObjectId($doctorId))->first();
+        if (! $doctor) {
+            return response()->json(['message' => 'Doctor not found'], 404);
+        }
+
+        return response()->json([
+            'message' => 'Doctor loaded',
+            'data' => $doctor,
+        ]);
     }
 
-    /**
-     * Update the specified resource in storage.
-     */
-    public function update(Request $request, string $id)
+    public function showPatient(Request $request, string $doctorId): JsonResponse
     {
-        //
-    }
+        $bookingToken = $request->attributes->get('bookingToken');
+        if ($bookingToken && (string) $bookingToken->doctorId !== $doctorId) {
+            return response()->json(['message' => 'Forbidden'], 403);
+        }
 
-    /**
-     * Remove the specified resource from storage.
-     */
-    public function destroy(string $id)
-    {
-        //
+        $doctor = User::query()
+            ->where('_id', new ObjectId($doctorId))
+            ->where('isActive', true)
+            ->where('roles', 'doctor')
+            ->first();
+
+        if (! $doctor) {
+            return response()->json(['message' => 'Doctor not found'], 404);
+        }
+
+        return response()->json([
+            'message' => 'Doctor loaded',
+            'data' => $doctor,
+        ]);
     }
 }

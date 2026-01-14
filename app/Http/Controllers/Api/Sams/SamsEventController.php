@@ -3,6 +3,9 @@
 namespace App\Http\Controllers\Api\Sams;
 
 use App\Http\Controllers\Controller;
+use App\Models\SamsEvent;
+use Carbon\Carbon;
+use Illuminate\Http\JsonResponse;
 use Illuminate\Http\Request;
 
 class SamsEventController extends Controller
@@ -10,40 +13,19 @@ class SamsEventController extends Controller
     /**
      * Display a listing of the resource.
      */
-    public function index()
+    public function index(Request $request): JsonResponse
     {
-        //
-    }
+        $query = SamsEvent::query();
+        if ($from = $request->query('from')) {
+            $query->where('startAt', '>=', Carbon::parse($from)->utc());
+        }
+        if ($to = $request->query('to')) {
+            $query->where('startAt', '<=', Carbon::parse($to)->utc());
+        }
 
-    /**
-     * Store a newly created resource in storage.
-     */
-    public function store(Request $request)
-    {
-        //
-    }
-
-    /**
-     * Display the specified resource.
-     */
-    public function show(string $id)
-    {
-        //
-    }
-
-    /**
-     * Update the specified resource in storage.
-     */
-    public function update(Request $request, string $id)
-    {
-        //
-    }
-
-    /**
-     * Remove the specified resource from storage.
-     */
-    public function destroy(string $id)
-    {
-        //
+        return response()->json([
+            'message' => 'SAMS events loaded',
+            'data' => $query->get(),
+        ]);
     }
 }

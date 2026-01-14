@@ -3,47 +3,80 @@
 namespace App\Http\Controllers\Api\Admin;
 
 use App\Http\Controllers\Controller;
-use Illuminate\Http\Request;
+use App\Http\Requests\Admin\StoreSamsEventRequest;
+use App\Http\Requests\Admin\UpdateSamsEventRequest;
+use App\Models\SamsEvent;
+use Carbon\Carbon;
+use Illuminate\Http\JsonResponse;
+use MongoDB\BSON\ObjectId;
 
 class SamsManagementController extends Controller
 {
     /**
      * Display a listing of the resource.
      */
-    public function index()
+    public function index(): JsonResponse
     {
-        //
+        return response()->json([
+            'message' => 'SAMS events loaded',
+            'data' => SamsEvent::query()->get(),
+        ]);
     }
 
-    /**
-     * Store a newly created resource in storage.
-     */
-    public function store(Request $request)
+    public function store(StoreSamsEventRequest $request): JsonResponse
     {
-        //
+        $data = $request->validated();
+        $event = SamsEvent::query()->create([
+            'title' => $data['title'],
+            'startAt' => Carbon::parse($data['startAt'])->utc(),
+            'endAt' => Carbon::parse($data['endAt'])->utc(),
+            'location' => $data['location'] ?? null,
+            'description' => $data['description'] ?? null,
+            'source' => $data['source'] ?? null,
+        ]);
+
+        return response()->json([
+            'message' => 'SAMS event created',
+            'data' => $event,
+        ]);
     }
 
-    /**
-     * Display the specified resource.
-     */
-    public function show(string $id)
+    public function update(UpdateSamsEventRequest $request, string $id): JsonResponse
     {
-        //
+        $event = SamsEvent::query()->where('_id', new ObjectId($id))->first();
+        if (! $event) {
+            return response()->json(['message' => 'SAMS event not found'], 404);
+        }
+
+        $data = $request->validated();
+        if (isset($data['startAt'])) {
+            $data['startAt'] = Carbon::parse($data['startAt'])->utc();
+        }
+        if (isset($data['endAt'])) {
+            $data['endAt'] = Carbon::parse($data['endAt'])->utc();
+        }
+
+        $event->fill($data);
+        $event->save();
+
+        return response()->json([
+            'message' => 'SAMS event updated',
+            'data' => $event,
+        ]);
     }
 
-    /**
-     * Update the specified resource in storage.
-     */
-    public function update(Request $request, string $id)
+    public function destroy(string $id): JsonResponse
     {
-        //
-    }
+        $event = SamsEvent::query()->where('_id', new ObjectId($id))->first();
+        if (! $event) {
+            return response()->json(['message' => 'SAMS event not found'], 404);
+        }
 
-    /**
-     * Remove the specified resource from storage.
-     */
-    public function destroy(string $id)
-    {
-        //
+        $event->delete();
+
+        return response()->json([
+            'message' => 'SAMS event deleted',
+            'data' => null,
+        ]);
     }
 }

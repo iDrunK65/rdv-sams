@@ -3,47 +3,38 @@
 namespace App\Http\Controllers\Api\Auth;
 
 use App\Http\Controllers\Controller;
-use Illuminate\Http\Request;
+use App\Http\Requests\Auth\LoginRequest;
+use App\Models\User;
+use Illuminate\Http\JsonResponse;
+use Illuminate\Support\Facades\Auth;
 
 class LoginController extends Controller
 {
     /**
-     * Display a listing of the resource.
-     */
-    public function index()
-    {
-        //
-    }
-
-    /**
      * Store a newly created resource in storage.
      */
-    public function store(Request $request)
+    public function store(LoginRequest $request): JsonResponse
     {
-        //
-    }
+        $credentials = $request->validated();
+        $user = User::query()->where('identifier', $credentials['identifier'])->first();
 
-    /**
-     * Display the specified resource.
-     */
-    public function show(string $id)
-    {
-        //
-    }
+        if (! $user) {
+            return response()->json(['message' => 'Invalid credentials'], 401);
+        }
 
-    /**
-     * Update the specified resource in storage.
-     */
-    public function update(Request $request, string $id)
-    {
-        //
-    }
+        if (! $user->isActive) {
+            return response()->json(['message' => 'User inactive'], 403);
+        }
 
-    /**
-     * Remove the specified resource from storage.
-     */
-    public function destroy(string $id)
-    {
-        //
+        if (! Auth::attempt(['identifier' => $credentials['identifier'], 'password' => $credentials['password']])) {
+            return response()->json(['message' => 'Invalid credentials'], 401);
+        }
+
+        $request->session()->regenerate();
+
+        return response()->json([
+            'message' => 'Login successful',
+            'data' => Auth::user(),
+        ]);
     }
 }
