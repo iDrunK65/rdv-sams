@@ -1,67 +1,368 @@
-import { useEffect, useState } from 'react';
-import { Head, Link } from '@inertiajs/react';
-import { Button, Card, CardBody, Spinner } from '@heroui/react';
+import { useCallback, useEffect, useMemo, useRef, useState } from 'react';
+import { Head } from '@inertiajs/react';
+import {
+    Button,
+    Card,
+    CardBody,
+    Input,
+    Modal,
+    ModalBody,
+    ModalContent,
+    ModalFooter,
+    ModalHeader,
+    Spinner,
+    Textarea,
+} from '@heroui/react';
+import FullCalendar from '@fullcalendar/react';
+import dayGridPlugin from '@fullcalendar/daygrid';
+import timeGridPlugin from '@fullcalendar/timegrid';
+import listPlugin from '@fullcalendar/list';
+import interactionPlugin from '@fullcalendar/interaction';
+import type { DateClickArg, DatesSetArg, EventClickArg, EventInput } from '@fullcalendar/core';
 
+import { ConfirmDialog } from '@/Components/ui/ConfirmDialog';
 import { PageHeader } from '@/Components/ui/PageHeader';
 import { AdminLayout } from '@/Layouts/AdminLayout';
 import { api } from '@/lib/api';
-import { formatDateTime } from '@/lib/date';
+import { toDateTimeLocal, toIsoUtc } from '@/lib/date';
 import type { ApiResponse, SamsEvent } from '@/lib/types';
+import { useToast } from '@/hooks/useToast';
+
+const viewOptions = [
+    { key: 'dayGridMonth', label: 'Mois' },
+    { key: 'timeGridWeek', label: 'Semaine' },
+    { key: 'timeGridDay', label: 'Jour' },
+    { key: 'listWeek', label: 'Agenda' },
+] as const;
+
+type CalendarView = (typeof viewOptions)[number]['key'];
+
+type ViewRange = {
+    start: Date;
+    end: Date;
+};
+
+type FormState = {
+    title: string;
+    startAt: string;
+    endAt: string;
+    location: string;
+    description: string;
+};
+
+const emptyForm: FormState = {
+    title: '',
+    startAt: '',
+    endAt: '',
+    location: '',
+    description: '',
+};
 
 const SamsIndex = () => {
+    const calendarRef = useRef<FullCalendar | null>(null);
     const [events, setEvents] = useState<SamsEvent[]>([]);
     const [loading, setLoading] = useState(true);
+    const [saving, setSaving] = useState(false);
+    const [viewTitle, setViewTitle] = useState('');
+    const [activeView, setActiveView] = useState<CalendarView>('timeGridWeek');
+    const [viewRange, setViewRange] = useState<ViewRange | null>(null);
+
+    const [modalOpen, setModalOpen] = useState(false);
+    const [editing, setEditing] = useState<SamsEvent | null>(null);
+    const [form, setForm] = useState<FormState>(emptyForm);
+    const [deleteOpen, setDeleteOpen] = useState(false);
+    const [deleteTarget, setDeleteTarget] = useState<SamsEvent | null>(null);
+    const [deleting, setDeleting] = useState(false);
+    const { success } = useToast();
+
+    const loadEvents = useCallback(async (range?: ViewRange | null) => {
+        const params = range
+            ? {
+                  from: toIsoUtc(range.start),
+                  to: toIsoUtc(range.end),
+              }
+            : undefined;
+        const response = await api.get<ApiResponse<SamsEvent[]>>('/api/admin/sams/events', { params });
+        setEvents(response.data.data);
+    }, []);
 
     useEffect(() => {
-        const load = async () => {
+        const boot = async () => {
             setLoading(true);
             try {
-                const response = await api.get<ApiResponse<SamsEvent[]>>('/api/admin/sams/events');
-                setEvents(response.data.data);
+                await loadEvents();
             } finally {
                 setLoading(false);
             }
         };
 
-        load();
-    }, []);
+        boot();
+    }, [loadEvents]);
+
+    useEffect(() => {
+        if (!viewRange) return;
+        loadEvents(viewRange);
+    }, [loadEvents, viewRange]);
+
+    const eventMap = useMemo(() => {
+        return new Map(
+            events
+                .map((event) => [event._id || event.id || '', event])
+                .filter(([id]) => Boolean(id)),
+        );
+    }, [events]);
+
+    const calendarEvents = useMemo<EventInput[]>(() => {
+        return events.map((event) => {
+            const id = event._id || event.id || '';
+            return {
+                id,
+                title: event.title || 'SAMS',
+                start: event.startAt,
+                end: event.endAt,
+                backgroundColor: '#94A3B8',
+                borderColor: '#CBD5F5',
+                textColor: '#0B0B0B',
+            };
+        });
+    }, [events]);
+
+    const handleDatesSet = (info: DatesSetArg) => {
+        setViewTitle(info.view.title);
+        setActiveView(info.view.type as CalendarView);
+        setViewRange({ start: info.start, end: info.end });
+    };
+
+    const handleEventClick = (info: EventClickArg) => {
+        const target = eventMap.get(info.event.id);
+        if (!target) return;
+        setEditing(target);
+        setForm({
+            title: target.title || '',
+            startAt: toDateTimeLocal(target.startAt),
+            endAt: toDateTimeLocal(target.endAt),
+            location: target.location || '',
+            description: target.description || '',
+        });
+        setModalOpen(true);
+    };
+
+    const handleDateClick = (info: DateClickArg) => {
+        const start = info.date;
+        const end = new Date(start.getTime() + 30 * 60000);
+        setEditing(null);
+        setForm({
+            title: '',
+            startAt: toDateTimeLocal(start),
+            endAt: toDateTimeLocal(end),
+            location: '',
+            description: '',
+        });
+        setModalOpen(true);
+    };
+
+    const handleNavigate = (direction: 'prev' | 'next' | 'today') => {
+        const api = calendarRef.current?.getApi();
+        if (!api) return;
+        if (direction === 'prev') api.prev();
+        if (direction === 'next') api.next();
+        if (direction === 'today') api.today();
+    };
+
+    const handleViewChange = (view: CalendarView) => {
+        calendarRef.current?.getApi()?.changeView(view);
+    };
+
+    const openCreate = () => {
+        setEditing(null);
+        setForm(emptyForm);
+        setModalOpen(true);
+    };
+
+    const closeModal = () => {
+        setModalOpen(false);
+        setEditing(null);
+        setForm(emptyForm);
+    };
+
+    const handleSave = async () => {
+        setSaving(true);
+        try {
+            const payload = {
+                title: form.title,
+                startAt: form.startAt,
+                endAt: form.endAt,
+                location: form.location || undefined,
+                description: form.description || undefined,
+            };
+
+            if (editing) {
+                const id = editing._id || editing.id || '';
+                await api.patch(`/api/admin/sams/events/${id}`, payload);
+                success('Evenement mis a jour');
+            } else {
+                await api.post('/api/admin/sams/events', payload);
+                success('Evenement cree');
+            }
+
+            closeModal();
+            await loadEvents(viewRange);
+        } finally {
+            setSaving(false);
+        }
+    };
+
+    const confirmDelete = (event: SamsEvent) => {
+        setDeleteTarget(event);
+        setDeleteOpen(true);
+    };
+
+    const handleDelete = async () => {
+        if (!deleteTarget) return;
+        const id = deleteTarget._id || deleteTarget.id || '';
+        setDeleting(true);
+        try {
+            await api.delete(`/api/admin/sams/events/${id}`);
+            success('Evenement supprime');
+            setDeleteOpen(false);
+            await loadEvents(viewRange);
+        } finally {
+            setDeleting(false);
+        }
+    };
 
     return (
         <AdminLayout>
-            <Head title="SAMS" />
+            <Head title="Calendrier SAMS" />
             <div className="space-y-6">
                 <PageHeader
-                    title="Evenements SAMS"
+                    title="Calendrier SAMS"
                     subtitle="Gerez les evenements SAMS."
                     actions={
-                        <Button as={Link} href="/dashboard/admin/calendrier-sams/create" color="primary">
+                        <Button color="primary" onPress={openCreate}>
                             Nouvel evenement
                         </Button>
                     }
                 />
-                {loading ? (
-                    <Spinner />
-                ) : (
-                    <div className="grid gap-4 md:grid-cols-2">
-                        {events.map((event) => {
-                            const id = event._id || event.id || '';
-                            return (
-                                <Card key={id} className="border border-white/10 bg-white/5">
-                                    <CardBody className="space-y-2">
-                                        <h3 className="text-lg font-semibold">{event.title}</h3>
-                                        <p className="text-sm text-foreground/70">
-                                            {formatDateTime(event.startAt)} - {formatDateTime(event.endAt)}
-                                        </p>
-                                        <Button as={Link} href={`/dashboard/admin/calendrier-sams/${id}/edit`} variant="flat">
-                                            Modifier
-                                        </Button>
-                                    </CardBody>
-                                </Card>
-                            );
-                        })}
+
+                <div className="calendar-shell p-4">
+                    <div className="flex flex-col gap-4 lg:flex-row lg:items-center lg:justify-between">
+                        <div className="space-y-1">
+                            <p className="text-sm text-foreground/60">{viewTitle || 'Calendrier'}</p>
+                            <div className="flex flex-wrap items-center gap-2">
+                                <Button size="sm" variant="flat" onPress={() => handleNavigate('today')}>
+                                    Aujourd hui
+                                </Button>
+                                <Button size="sm" variant="flat" onPress={() => handleNavigate('prev')}>
+                                    Prec
+                                </Button>
+                                <Button size="sm" variant="flat" onPress={() => handleNavigate('next')}>
+                                    Suiv
+                                </Button>
+                            </div>
+                        </div>
+                        <div className="flex flex-wrap gap-2">
+                            {viewOptions.map((view) => (
+                                <Button
+                                    key={view.key}
+                                    size="sm"
+                                    variant={activeView === view.key ? 'solid' : 'flat'}
+                                    onPress={() => handleViewChange(view.key)}
+                                >
+                                    {view.label}
+                                </Button>
+                            ))}
+                        </div>
                     </div>
-                )}
+                    <Card className="mt-4 border border-white/10 bg-black/30">
+                        <CardBody className="relative">
+                            {loading ? (
+                                <div className="absolute inset-0 z-10 flex items-center justify-center bg-black/40">
+                                    <Spinner />
+                                </div>
+                            ) : null}
+                            <FullCalendar
+                                ref={calendarRef}
+                                plugins={[dayGridPlugin, timeGridPlugin, listPlugin, interactionPlugin]}
+                                initialView="timeGridWeek"
+                                headerToolbar={false}
+                                nowIndicator
+                                height="auto"
+                                expandRows
+                                dayMaxEventRows={3}
+                                slotMinTime="07:00:00"
+                                slotMaxTime="20:00:00"
+                                events={calendarEvents}
+                                eventClick={handleEventClick}
+                                dateClick={handleDateClick}
+                                datesSet={handleDatesSet}
+                            />
+                        </CardBody>
+                    </Card>
+                </div>
             </div>
+
+            <Modal isOpen={modalOpen} onClose={closeModal} backdrop="blur" size="lg">
+                <ModalContent>
+                    <ModalHeader>{editing ? 'Modifier un evenement' : 'Nouvel evenement'}</ModalHeader>
+                    <ModalBody className="space-y-3">
+                        <Input
+                            label="Titre"
+                            value={form.title}
+                            onValueChange={(value) => setForm({ ...form, title: value })}
+                            isRequired
+                        />
+                        <Input
+                            label="Debut"
+                            type="datetime-local"
+                            value={form.startAt}
+                            onValueChange={(value) => setForm({ ...form, startAt: value })}
+                            isRequired
+                        />
+                        <Input
+                            label="Fin"
+                            type="datetime-local"
+                            value={form.endAt}
+                            onValueChange={(value) => setForm({ ...form, endAt: value })}
+                            isRequired
+                        />
+                        <Input
+                            label="Localisation"
+                            value={form.location}
+                            onValueChange={(value) => setForm({ ...form, location: value })}
+                        />
+                        <Textarea
+                            label="Description"
+                            value={form.description}
+                            onValueChange={(value) => setForm({ ...form, description: value })}
+                        />
+                        {editing ? (
+                            <Button color="danger" variant="flat" onPress={() => confirmDelete(editing)}>
+                                Supprimer
+                            </Button>
+                        ) : null}
+                    </ModalBody>
+                    <ModalFooter className="gap-2">
+                        <Button variant="light" onPress={closeModal}>
+                            Annuler
+                        </Button>
+                        <Button color="primary" onPress={handleSave} isLoading={saving}>
+                            Enregistrer
+                        </Button>
+                    </ModalFooter>
+                </ModalContent>
+            </Modal>
+
+            <ConfirmDialog
+                isOpen={deleteOpen}
+                title="Supprimer l evenement"
+                description="Confirmez la suppression de l evenement selectionne."
+                confirmLabel="Supprimer"
+                confirmColor="danger"
+                isLoading={deleting}
+                onClose={() => setDeleteOpen(false)}
+                onConfirm={handleDelete}
+            />
         </AdminLayout>
     );
 };
