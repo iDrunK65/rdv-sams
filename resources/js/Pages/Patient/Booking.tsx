@@ -1,12 +1,28 @@
-import { FormEvent, useEffect, useMemo, useState } from 'react';
+import { useEffect, useMemo, useRef, useState } from 'react';
 import { Head, router } from '@inertiajs/react';
-import { Button, Card, CardBody, Input, Select, SelectItem, Spinner } from '@heroui/react';
+import {
+    Button,
+    Card,
+    CardBody,
+    Modal,
+    ModalBody,
+    ModalContent,
+    ModalFooter,
+    ModalHeader,
+    Select,
+    SelectItem,
+    Spinner,
+} from '@heroui/react';
+import FullCalendar from '@fullcalendar/react';
+import dayGridPlugin from '@fullcalendar/daygrid';
+import timeGridPlugin from '@fullcalendar/timegrid';
+import interactionPlugin from '@fullcalendar/interaction';
+import type { DatesSetArg, EventClickArg, EventInput } from '@fullcalendar/core';
 
 import { PatientLayout } from '@/Layouts/PatientLayout';
 import { PatientForm } from '@/Components/patient/PatientForm';
-import { SlotList } from '@/Components/patient/SlotList';
 import { api } from '@/lib/api';
-import { endOfDayUtc, formatDate, startOfDayUtc } from '@/lib/date';
+import { formatDateTime, toIsoUtc } from '@/lib/date';
 import { clearPatientContext, getPatientContext } from '@/lib/patient';
 import type { ApiResponse, AppointmentType, AvailabilitySlot, PatientInfo } from '@/lib/types';
 import { useToast } from '@/hooks/useToast';
@@ -15,13 +31,26 @@ type BookingProps = {
     calendarId: string;
 };
 
+type ViewRange = {
+    start: Date;
+    end: Date;
+};
+
+const viewOptions = [
+    { key: 'timeGridWeek', label: 'Semaine' },
+    { key: 'timeGridDay', label: 'Jour' },
+] as const;
+
+type CalendarView = (typeof viewOptions)[number]['key'];
+
 const Booking = ({ calendarId }: BookingProps) => {
     const context = getPatientContext();
+    const doctorId = context?.doctorId || '';
     const { success, error } = useToast();
+    const calendarRef = useRef<FullCalendar | null>(null);
 
     const [appointmentTypes, setAppointmentTypes] = useState<AppointmentType[]>([]);
     const [appointmentTypeId, setAppointmentTypeId] = useState('');
-    const [date, setDate] = useState(() => formatDate(new Date()));
     const [slots, setSlots] = useState<AvailabilitySlot[]>([]);
     const [selectedSlot, setSelectedSlot] = useState<AvailabilitySlot | null>(null);
     const [patient, setPatient] = useState<PatientInfo>({
@@ -30,11 +59,13 @@ const Booking = ({ calendarId }: BookingProps) => {
         phone: '',
         company: '',
     });
-    const [loadingSlots, setLoadingSlots] = useState(false);
     const [loadingTypes, setLoadingTypes] = useState(true);
+    const [loadingSlots, setLoadingSlots] = useState(false);
     const [submitting, setSubmitting] = useState(false);
-
-    const doctorId = context?.doctorId || '';
+    const [modalOpen, setModalOpen] = useState(false);
+    const [viewTitle, setViewTitle] = useState('');
+    const [activeView, setActiveView] = useState<CalendarView>('timeGridWeek');
+    const [viewRange, setViewRange] = useState<ViewRange | null>(null);
 
     useEffect(() => {
         const loadTypes = async () => {
@@ -56,17 +87,9 @@ const Booking = ({ calendarId }: BookingProps) => {
         loadTypes();
     }, [calendarId]);
 
-    const range = useMemo(() => {
-        if (!date) return null;
-        return {
-            from: startOfDayUtc(date),
-            to: endOfDayUtc(date),
-        };
-    }, [date]);
-
     useEffect(() => {
         const loadSlots = async () => {
-            if (!doctorId || !calendarId || !appointmentTypeId || !range) return;
+            if (!doctorId || !appointmentTypeId || !viewRange) return;
             setLoadingSlots(true);
             try {
                 const response = await api.get<ApiResponse<AvailabilitySlot[]>>('/api/patient/availability/slots', {
@@ -74,8 +97,8 @@ const Booking = ({ calendarId }: BookingProps) => {
                         doctorId,
                         calendarId,
                         appointmentTypeId,
-                        from: range.from,
-                        to: range.to,
+                        from: toIsoUtc(viewRange.start),
+                        to: toIsoUtc(viewRange.end),
                     },
                 });
                 setSlots(response.data.data);
@@ -86,10 +109,51 @@ const Booking = ({ calendarId }: BookingProps) => {
         };
 
         loadSlots();
-    }, [doctorId, calendarId, appointmentTypeId, range]);
+    }, [doctorId, calendarId, appointmentTypeId, viewRange]);
 
-    const handleSubmit = async (event: FormEvent) => {
-        event.preventDefault();
+    const slotById = useMemo(() => {
+        return new Map(slots.map((slot) => [slot.startAt, slot]));
+    }, [slots]);
+
+    const events = useMemo<EventInput[]>(() => {
+        return slots.map((slot) => ({
+            id: slot.startAt,
+            title: 'Disponible',
+            start: slot.startAt,
+            end: slot.endAt,
+            classNames: ['fc-available-slot'],
+            backgroundColor: 'rgba(59, 130, 246, 0.18)',
+            borderColor: 'rgba(59, 130, 246, 0.4)',
+            textColor: '#E2E8F0',
+        }));
+    }, [slots]);
+
+    const handleDatesSet = (info: DatesSetArg) => {
+        setViewTitle(info.view.title);
+        setActiveView(info.view.type as CalendarView);
+        setViewRange({ start: info.start, end: info.end });
+    };
+
+    const handleEventClick = (info: EventClickArg) => {
+        const slot = slotById.get(info.event.id);
+        if (!slot) return;
+        setSelectedSlot(slot);
+        setModalOpen(true);
+    };
+
+    const handleNavigate = (direction: 'prev' | 'next' | 'today') => {
+        const api = calendarRef.current?.getApi();
+        if (!api) return;
+        if (direction === 'prev') api.prev();
+        if (direction === 'next') api.next();
+        if (direction === 'today') api.today();
+    };
+
+    const handleViewChange = (view: CalendarView) => {
+        calendarRef.current?.getApi()?.changeView(view);
+    };
+
+    const handleSubmit = async () => {
         if (!selectedSlot) return;
         setSubmitting(true);
         try {
@@ -106,6 +170,7 @@ const Booking = ({ calendarId }: BookingProps) => {
             });
             success('RDV pris avec succes');
             clearPatientContext();
+            setModalOpen(false);
             setTimeout(() => router.visit('/'), 1000);
         } catch {
             error('Impossible de reserver ce creneau');
@@ -121,7 +186,7 @@ const Booking = ({ calendarId }: BookingProps) => {
                 <Card className="border border-white/10 bg-white/5">
                     <CardBody className="space-y-3">
                         <p className="text-sm text-foreground/70">
-                            Le contexte patient est manquant. Veuillez renseigner votre token.
+                            Le token patient est manquant ou expire. Veuillez revenir a la page d acces.
                         </p>
                         <Button color="primary" onPress={() => router.visit('/')}>
                             Retour
@@ -132,13 +197,18 @@ const Booking = ({ calendarId }: BookingProps) => {
         );
     }
 
+    const handleCloseModal = () => {
+        setModalOpen(false);
+        setSelectedSlot(null);
+    };
+
     return (
         <PatientLayout>
             <Head title="Prise de RDV" />
             <div className="space-y-6">
                 <Card className="border border-white/10 bg-white/5">
                     <CardBody className="space-y-4">
-                        <h2 className="text-xl font-semibold">Choisir un rendez-vous</h2>
+                        <h2 className="text-xl font-semibold">Prendre un rendez-vous</h2>
                         {loadingTypes ? (
                             <Spinner />
                         ) : appointmentTypes.length === 0 ? (
@@ -167,48 +237,87 @@ const Booking = ({ calendarId }: BookingProps) => {
                                 })}
                             </Select>
                         )}
-                        <Input
-                            type="date"
-                            label="Date"
-                            value={date}
-                            onValueChange={setDate}
-                            isRequired
-                        />
                     </CardBody>
                 </Card>
 
-                <Card className="border border-white/10 bg-white/5">
-                    <CardBody className="space-y-4">
-                        <h3 className="text-lg font-semibold">Creneaux disponibles</h3>
-                        {loadingSlots ? (
-                            <Spinner />
-                        ) : (
-                            <SlotList
-                                slots={slots}
-                                selected={selectedSlot?.startAt || null}
-                                onSelect={setSelectedSlot}
+                <div className="calendar-shell p-4">
+                    <div className="flex flex-col gap-4 lg:flex-row lg:items-center lg:justify-between">
+                        <div className="space-y-1">
+                            <p className="text-sm text-foreground/60">{viewTitle || 'Calendrier'}</p>
+                            <div className="flex flex-wrap items-center gap-2">
+                                <Button size="sm" variant="flat" onPress={() => handleNavigate('today')}>
+                                    Aujourd hui
+                                </Button>
+                                <Button size="sm" variant="flat" onPress={() => handleNavigate('prev')}>
+                                    Prec
+                                </Button>
+                                <Button size="sm" variant="flat" onPress={() => handleNavigate('next')}>
+                                    Suiv
+                                </Button>
+                            </div>
+                        </div>
+                        <div className="flex flex-wrap gap-2">
+                            {viewOptions.map((view) => (
+                                <Button
+                                    key={view.key}
+                                    size="sm"
+                                    variant={activeView === view.key ? 'solid' : 'flat'}
+                                    onPress={() => handleViewChange(view.key)}
+                                >
+                                    {view.label}
+                                </Button>
+                            ))}
+                        </div>
+                    </div>
+                    <Card className="mt-4 border border-white/10 bg-black/30">
+                        <CardBody className="relative">
+                            {loadingSlots ? (
+                                <div className="absolute inset-0 z-10 flex items-center justify-center bg-black/40">
+                                    <Spinner />
+                                </div>
+                            ) : null}
+                            <FullCalendar
+                                ref={calendarRef}
+                                plugins={[dayGridPlugin, timeGridPlugin, interactionPlugin]}
+                                initialView="timeGridWeek"
+                                headerToolbar={false}
+                                nowIndicator
+                                height="auto"
+                                expandRows
+                                dayMaxEventRows={3}
+                                slotMinTime="07:00:00"
+                                slotMaxTime="20:00:00"
+                                events={events}
+                                eventClick={handleEventClick}
+                                datesSet={handleDatesSet}
                             />
-                        )}
-                    </CardBody>
-                </Card>
-
-                <Card className="border border-white/10 bg-white/5">
-                    <CardBody className="space-y-4">
-                        <h3 className="text-lg font-semibold">Vos informations</h3>
-                        <form onSubmit={handleSubmit} className="space-y-4">
-                            <PatientForm value={patient} onChange={setPatient} />
-                            <Button
-                                color="primary"
-                                type="submit"
-                                isDisabled={!selectedSlot || submitting}
-                                isLoading={submitting}
-                            >
-                                Confirmer le RDV
-                            </Button>
-                        </form>
-                    </CardBody>
-                </Card>
+                        </CardBody>
+                    </Card>
+                </div>
             </div>
+
+            <Modal isOpen={modalOpen} onClose={handleCloseModal} backdrop="blur" size="lg">
+                <ModalContent>
+                    <ModalHeader>Prendre rendez-vous</ModalHeader>
+                    <ModalBody className="space-y-4">
+                        {selectedSlot ? (
+                            <div className="rounded-large border border-white/10 bg-white/5 px-4 py-3 text-sm">
+                                Creneau selectionne: {formatDateTime(selectedSlot.startAt)} -{' '}
+                                {formatDateTime(selectedSlot.endAt)}
+                            </div>
+                        ) : null}
+                        <PatientForm value={patient} onChange={setPatient} />
+                    </ModalBody>
+                    <ModalFooter className="gap-2">
+                        <Button variant="light" onPress={handleCloseModal}>
+                            Annuler
+                        </Button>
+                        <Button color="primary" onPress={handleSubmit} isDisabled={!selectedSlot || submitting} isLoading={submitting}>
+                            Valider
+                        </Button>
+                    </ModalFooter>
+                </ModalContent>
+            </Modal>
         </PatientLayout>
     );
 };

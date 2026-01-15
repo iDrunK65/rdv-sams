@@ -61,8 +61,8 @@ const DoctorsEdit = ({ id }: DoctorsEditProps) => {
                 specialtyIds: specialties,
                 isActive,
             });
-            success('Medecin mis a jour');
-            router.visit('/dashboard/admin/doctors');
+            success('Compte mis a jour');
+            router.visit('/dashboard/admin/comptes');
         } finally {
             setSaving(false);
         }
@@ -90,9 +90,9 @@ const DoctorsEdit = ({ id }: DoctorsEditProps) => {
 
     return (
         <AdminLayout>
-            <Head title="Modifier le medecin" />
+            <Head title="Modifier le compte" />
             <div className="space-y-6">
-                <PageHeader title="Modifier le medecin" subtitle={doctor?.identifier || ''} />
+                <PageHeader title="Modifier le compte" subtitle={doctor?.identifier || ''} />
                 <form onSubmit={handleSave} className="space-y-4">
                     <Input label="Identifiant" value={identifier} onValueChange={setIdentifier} isRequired />
                     <Input label="Nom" value={name} onValueChange={setName} />

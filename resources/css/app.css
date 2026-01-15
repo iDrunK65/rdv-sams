@@ -158,6 +158,12 @@
     box-shadow: 0 0 0 1px rgba(0, 0, 0, 0.2);
 }
 
+.fc .fc-event.fc-available-slot {
+    background: rgba(59, 130, 246, 0.18);
+    border: 1px solid rgba(59, 130, 246, 0.35);
+    cursor: pointer;
+}
+
 .fc .fc-event-title {
     font-weight: 600;
     font-size: 0.75rem;

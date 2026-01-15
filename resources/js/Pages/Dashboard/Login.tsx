@@ -1,5 +1,5 @@
 import { FormEvent, useState } from 'react';
-import { Head, router } from '@inertiajs/react';
+import { Head, Link, router } from '@inertiajs/react';
 import { Button, Input } from '@heroui/react';
 
 import { GuestLayout } from '@/Layouts/GuestLayout';
@@ -28,18 +28,28 @@ const Login = () => {
     };
 
     return (
-        <GuestLayout>
+        <GuestLayout
+            headerAction={
+                <Link href="/" className="text-sm text-foreground/70 hover:text-white">
+                    Acces patient
+                </Link>
+            }
+        >
             <Head title="Connexion" />
             <div className="space-y-6">
                 <div>
-                    <h1 className="text-3xl font-semibold text-white">Connexion panel</h1>
-                    <p className="mt-2 text-sm text-foreground/70">
-                        Entrez vos identifiants pour acceder au tableau de bord.
-                    </p>
+                    <h1 className="text-3xl font-semibold text-white">Connectez vous sur votre espace medecin</h1>
+                    <p className="mt-2 text-sm text-foreground/70">Entrez vos identifiants.</p>
                 </div>
                 <form onSubmit={handleSubmit} className="space-y-4">
                     <Input label="Identifiant" value={identifier} onValueChange={setIdentifier} isRequired />
-                    <Input label="Mot de passe" type="password" value={password} onValueChange={setPassword} isRequired />
+                    <Input
+                        label="Mot de passe"
+                        type="password"
+                        value={password}
+                        onValueChange={setPassword}
+                        isRequired
+                    />
                     <Button color="primary" type="submit" isLoading={loading} className="w-full">
                         Se connecter
                     </Button>

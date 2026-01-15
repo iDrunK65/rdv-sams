@@ -27,14 +27,14 @@ const DoctorsIndex = () => {
 
     return (
         <AdminLayout>
-            <Head title="Medecins" />
+            <Head title="Comptes" />
             <div className="space-y-6">
                 <PageHeader
-                    title="Medecins"
+                    title="Comptes medecins"
                     subtitle="Creer et gerer les comptes medecins."
                     actions={
-                        <Button as={Link} href="/dashboard/admin/doctors/create" color="primary">
-                            Nouveau medecin
+                        <Button as={Link} href="/dashboard/admin/comptes/create" color="primary">
+                            Nouveau compte
                         </Button>
                     }
                 />
@@ -51,7 +51,7 @@ const DoctorsIndex = () => {
                                             <p className="text-sm text-foreground/70">{doctor.identifier}</p>
                                             <h3 className="text-lg font-semibold">{doctor.name || 'Medecin'}</h3>
                                         </div>
-                                        <Button as={Link} href={`/dashboard/admin/doctors/${id}/edit`} variant="flat">
+                                        <Button as={Link} href={`/dashboard/admin/comptes/${id}/edit`} variant="flat">
                                             Modifier
                                         </Button>
                                     </CardBody>

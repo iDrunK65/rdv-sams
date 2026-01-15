@@ -59,9 +59,11 @@ export const GenerateTokenModal = ({ isOpen, calendars, onClose }: GenerateToken
                     >
                         {calendars.map((calendar) => {
                             const id = calendar._id || calendar.id || '';
+                            const fallback =
+                                calendar.scope === 'doctor' ? 'Visite medicale' : calendar.scope === 'specialty' ? 'Specialite' : 'SAMS';
                             return (
                                 <SelectItem key={id} value={id}>
-                                    {calendar.label || `${calendar.scope} calendar`}
+                                    {calendar.label || fallback}
                                 </SelectItem>
                             );
                         })}

@@ -25,11 +25,11 @@ const redirectOnUnauthorized = (): void => {
 
     const path = window.location.pathname;
     if (path.startsWith('/dashboard')) {
-        window.location.href = '/dashboard/login';
+        window.location.href = '/login';
         return;
     }
 
-    if (path.startsWith('/patient')) {
+    if (path.startsWith('/prise-rdv')) {
         window.location.href = '/';
     }
 };

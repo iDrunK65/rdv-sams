@@ -1,8 +1,9 @@
 import { ReactNode } from 'react';
-import { Link, usePage } from '@inertiajs/react';
+import { Link, router, usePage } from '@inertiajs/react';
 import { Button, Divider } from '@heroui/react';
 
 import { useAuth, useIsAdmin } from '@/hooks/useAuth';
+import { api } from '@/lib/api';
 
 type DashboardLayoutProps = {
     children: ReactNode;
@@ -13,22 +14,33 @@ export const DashboardLayout = ({ children }: DashboardLayoutProps) => {
     const user = useAuth();
     const isAdmin = useIsAdmin();
     const navItems = [
-        { label: 'Calendrier', href: '/dashboard' },
-        { label: 'Calendriers', href: '/dashboard/calendars' },
+        { label: 'Dashboard', href: '/dashboard' },
+        { label: 'Calendriers', href: '/dashboard/calendriers' },
         ...(isAdmin ? [{ label: 'Admin', href: '/dashboard/admin' }] : []),
     ];
+
+    const handleLogout = async () => {
+        try {
+            await api.post('/api/auth/logout');
+        } finally {
+            router.visit('/login');
+        }
+    };
 
     return (
         <div className="min-h-screen bg-gradient-to-br from-black via-slate-950 to-slate-900 text-foreground">
             <div className="flex min-h-screen">
                 <aside className="hidden w-64 flex-col border-r border-white/10 bg-black/40 px-6 py-6 lg:flex">
-                    <Link href="/dashboard" className="text-xl font-semibold text-white">
-                        Panel RDV
+                    <Link href="/dashboard" className="flex items-center gap-2 text-white">
+                        <span className="grid h-9 w-9 place-items-center rounded-full bg-white/10 text-sm font-semibold">
+                            S
+                        </span>
+                        <span className="text-lg font-semibold">SAMS</span>
                     </Link>
                     <Divider className="my-6 opacity-40" />
                     <nav className="space-y-2">
                         {navItems.map((item) => {
-                            const isActive = url === item.href;
+                            const isActive = url === item.href || url.startsWith(`${item.href}/`);
                             return (
                                 <Link
                                     key={item.href}
@@ -42,6 +54,16 @@ export const DashboardLayout = ({ children }: DashboardLayoutProps) => {
                             );
                         })}
                     </nav>
+                    <Divider className="my-6 opacity-40" />
+                    <div className="mt-auto space-y-3">
+                        <div className="text-sm">
+                            <p className="text-foreground/60">Connecte</p>
+                            <p className="font-semibold text-white">{user?.name || user?.identifier || 'Medecin'}</p>
+                        </div>
+                        <Button variant="flat" size="sm" onPress={handleLogout}>
+                            Deconnexion
+                        </Button>
+                    </div>
                 </aside>
                 <div className="flex-1">
                     <header className="border-b border-white/10 bg-black/30 backdrop-blur">

@@ -1,6 +1,6 @@
 import { useCallback, useEffect, useMemo, useRef, useState } from 'react';
 import { Head, Link } from '@inertiajs/react';
-import { Button, Card, CardBody, Select, SelectItem, Spinner } from '@heroui/react';
+import { Button, Card, CardBody, Select, SelectItem, Spinner, Switch } from '@heroui/react';
 import FullCalendar from '@fullcalendar/react';
 import dayGridPlugin from '@fullcalendar/daygrid';
 import timeGridPlugin from '@fullcalendar/timegrid';
@@ -16,7 +16,7 @@ import { DashboardLayout } from '@/Layouts/DashboardLayout';
 import { useIsAdmin } from '@/hooks/useAuth';
 import { api } from '@/lib/api';
 import { toIsoUtc } from '@/lib/date';
-import type { ApiResponse, Appointment, Calendar, Doctor } from '@/lib/types';
+import type { ApiResponse, Appointment, Calendar, Doctor, SamsEvent } from '@/lib/types';
 import { EventDrawer } from './EventDrawer';
 
 const viewOptions = [
@@ -52,6 +52,7 @@ const CalendarIndex = () => {
     const calendarRef = useRef<FullCalendar | null>(null);
     const [calendars, setCalendars] = useState<Calendar[]>([]);
     const [appointments, setAppointments] = useState<Appointment[]>([]);
+    const [samsEvents, setSamsEvents] = useState<SamsEvent[]>([]);
     const [doctors, setDoctors] = useState<Doctor[]>([]);
     const [calendarIds, setCalendarIds] = useState<string[]>([]);
     const [loading, setLoading] = useState(true);
@@ -59,6 +60,7 @@ const CalendarIndex = () => {
     const [viewTitle, setViewTitle] = useState('');
     const [activeView, setActiveView] = useState<CalendarView>('timeGridWeek');
     const [viewRange, setViewRange] = useState<ViewRange | null>(null);
+    const [includeSams, setIncludeSams] = useState(true);
 
     const [drawerOpen, setDrawerOpen] = useState(false);
     const [selectedAppointment, setSelectedAppointment] = useState<Appointment | null>(null);
@@ -99,6 +101,17 @@ const CalendarIndex = () => {
         setDoctors(response.data.data);
     }, []);
 
+    const loadSamsEvents = useCallback(async (range?: ViewRange | null) => {
+        const params = range
+            ? {
+                  from: toIsoUtc(range.start),
+                  to: toIsoUtc(range.end),
+              }
+            : undefined;
+        const response = await api.get<ApiResponse<SamsEvent[]>>('/api/sams/events', { params });
+        setSamsEvents(response.data.data);
+    }, []);
+
     useEffect(() => {
         const boot = async () => {
             setLoading(true);
@@ -110,7 +123,7 @@ const CalendarIndex = () => {
         };
 
         boot();
-    }, [loadCalendars, loadDoctors]);
+    }, [loadCalendars, loadDoctors, loadSamsEvents]);
 
     useEffect(() => {
         if (calendars.length === 0) return;
@@ -127,6 +140,11 @@ const CalendarIndex = () => {
         if (!viewRange) return;
         loadAppointments(viewRange);
     }, [loadAppointments, viewRange]);
+
+    useEffect(() => {
+        if (!viewRange || !includeSams) return;
+        loadSamsEvents(viewRange);
+    }, [includeSams, loadSamsEvents, viewRange]);
 
     const appointmentById = useMemo(() => {
         return new Map(
@@ -150,7 +168,7 @@ const CalendarIndex = () => {
         return appointments.filter((appointment) => selection.has(appointment.calendarId));
     }, [appointments, calendarIds]);
 
-    const events = useMemo<EventInput[]>(() => {
+    const appointmentEvents = useMemo<EventInput[]>(() => {
         return filteredAppointments.map((appointment) => {
             const id = appointment._id || appointment.id || '';
             const calendar = calendarMap.get(appointment.calendarId);
@@ -168,9 +186,31 @@ const CalendarIndex = () => {
                 backgroundColor: color,
                 borderColor: color,
                 textColor: getEventTextColor(color),
+                extendedProps: { type: 'appointment' },
             };
         });
     }, [filteredAppointments, calendarMap]);
+
+    const samsEventItems = useMemo<EventInput[]>(() => {
+        if (!includeSams) return [];
+        return samsEvents.map((event) => {
+            const id = event._id || event.id || '';
+            return {
+                id: `sams-${id}`,
+                title: event.title || 'SAMS',
+                start: event.startAt,
+                end: event.endAt,
+                backgroundColor: '#94A3B8',
+                borderColor: '#CBD5F5',
+                textColor: '#0B0B0B',
+                extendedProps: { type: 'sams' },
+            };
+        });
+    }, [samsEvents, includeSams]);
+
+    const events = useMemo<EventInput[]>(() => {
+        return [...appointmentEvents, ...samsEventItems];
+    }, [appointmentEvents, samsEventItems]);
 
     const handleDatesSet = (info: DatesSetArg) => {
         setViewTitle(info.view.title);
@@ -179,6 +219,7 @@ const CalendarIndex = () => {
     };
 
     const handleEventClick = (info: EventClickArg) => {
+        if (info.event.extendedProps?.type === 'sams') return;
         const appointment = appointmentById.get(info.event.id);
         if (!appointment) return;
         setSelectedAppointment(appointment);
@@ -225,12 +266,14 @@ const CalendarIndex = () => {
         }
     };
 
+    const calendarCards = calendars.filter((calendar) => calendar.scope !== 'sams');
+
     return (
         <DashboardLayout>
-            <Head title="Calendrier" />
+            <Head title="Dashboard" />
             <div className="space-y-6">
                 <PageHeader
-                    title="Calendrier"
+                    title="Espace medecin"
                     subtitle="Consultez vos rendez-vous et generez des tokens patients."
                     actions={
                         <Button color="primary" onPress={() => setTokenModalOpen(true)}>
@@ -242,7 +285,7 @@ const CalendarIndex = () => {
                 <div className="space-y-4">
                     <div className="flex items-center justify-between">
                         <h2 className="text-lg font-semibold">Calendriers</h2>
-                        <Button as={Link} href="/dashboard/calendars" variant="flat" size="sm">
+                        <Button as={Link} href="/dashboard/calendriers" variant="flat" size="sm">
                             Vue globale
                         </Button>
                     </div>
@@ -250,7 +293,7 @@ const CalendarIndex = () => {
                         <Spinner />
                     ) : (
                         <div className="grid gap-4 md:grid-cols-2">
-                            {calendars.map((calendar) => {
+                            {calendarCards.map((calendar) => {
                                 const id = calendar._id || calendar.id || '';
                                 return (
                                     <Card key={id} className="border border-white/10 bg-white/5">
@@ -258,7 +301,7 @@ const CalendarIndex = () => {
                                             <div className="flex items-start justify-between gap-3">
                                                 <div>
                                                     <p className="text-xs uppercase text-foreground/60">
-                                                        {calendar.scope}
+                                                        {calendar.scope === 'doctor' ? 'Visite medicale' : 'Specialite'}
                                                     </p>
                                                     <h3 className="text-lg font-semibold">
                                                         {calendar.label || 'Calendrier'}
@@ -271,40 +314,9 @@ const CalendarIndex = () => {
                                                     />
                                                 ) : null}
                                             </div>
-                                            <div className="flex flex-wrap gap-2">
-                                                <Button
-                                                    as={Link}
-                                                    href={`/dashboard/calendars/${id}`}
-                                                    variant="flat"
-                                                    size="sm"
-                                                >
-                                                    Details
-                                                </Button>
-                                                <Button
-                                                    as={Link}
-                                                    href={`/dashboard/calendars/${id}/rules`}
-                                                    variant="flat"
-                                                    size="sm"
-                                                >
-                                                    Regles
-                                                </Button>
-                                                <Button
-                                                    as={Link}
-                                                    href={`/dashboard/calendars/${id}/exceptions`}
-                                                    variant="flat"
-                                                    size="sm"
-                                                >
-                                                    Exceptions
-                                                </Button>
-                                                <Button
-                                                    as={Link}
-                                                    href={`/dashboard/calendars/${id}/appointment-types`}
-                                                    variant="flat"
-                                                    size="sm"
-                                                >
-                                                    Types
-                                                </Button>
-                                            </div>
+                                            <Button as={Link} href={`/dashboard/config/${id}`} variant="flat" size="sm">
+                                                Configurer
+                                            </Button>
                                         </CardBody>
                                     </Card>
                                 );
@@ -337,17 +349,19 @@ const CalendarIndex = () => {
                                 onSelectionChange={handleCalendarChange}
                                 className="min-w-[220px]"
                             >
-                                {calendars
-                                    .filter((calendar) => calendar.scope !== 'sams')
-                                    .map((calendar) => {
-                                        const id = calendar._id || calendar.id || '';
-                                        return (
-                                            <SelectItem key={id} value={id}>
-                                                {calendar.label || `${calendar.scope} calendar`}
-                                            </SelectItem>
-                                        );
-                                    })}
+                                {calendarCards.map((calendar) => {
+                                    const id = calendar._id || calendar.id || '';
+                                    return (
+                                        <SelectItem key={id} value={id}>
+                                            {calendar.label ||
+                                                (calendar.scope === 'doctor' ? 'Visite medicale' : 'Specialite')}
+                                        </SelectItem>
+                                    );
+                                })}
                             </Select>
+                            <Switch isSelected={includeSams} onValueChange={setIncludeSams} size="sm">
+                                Afficher SAMS
+                            </Switch>
                             <div className="flex flex-wrap gap-2">
                                 {viewOptions.map((view) => (
                                     <Button
@@ -391,7 +405,7 @@ const CalendarIndex = () => {
 
             <GenerateTokenModal
                 isOpen={tokenModalOpen}
-                calendars={calendars.filter((calendar) => calendar.scope !== 'sams')}
+                calendars={calendarCards}
                 onClose={() => setTokenModalOpen(false)}
             />
 
@@ -417,7 +431,7 @@ const CalendarIndex = () => {
             <ConfirmDialog
                 isOpen={cancelOpen}
                 title="Annuler le rendez-vous"
-                description="Confirmez l'annulation du rendez-vous selectionne."
+                description="Confirmez l annulation du rendez-vous selectionne."
                 confirmLabel="Annuler"
                 confirmColor="danger"
                 isLoading={cancelLoading}

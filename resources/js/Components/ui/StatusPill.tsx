@@ -4,12 +4,14 @@ type StatusPillProps = {
     value: string;
 };
 
-const mapStatus = (value: string): { label: string; color: 'default' | 'primary' | 'success' | 'warning' | 'danger' } => {
+const mapStatus = (
+    value: string,
+): { label: string; color: 'default' | 'primary' | 'success' | 'warning' | 'danger' } => {
     switch (value) {
         case 'booked':
-            return { label: 'Confirmé', color: 'success' };
+            return { label: 'Confirme', color: 'success' };
         case 'canceled':
-            return { label: 'Annulé', color: 'danger' };
+            return { label: 'Annule', color: 'danger' };
         default:
             return { label: value, color: 'default' };
     }

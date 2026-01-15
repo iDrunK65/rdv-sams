@@ -30,7 +30,7 @@ const SamsCreate = () => {
                 source: source || undefined,
             });
             success('Evenement cree');
-            router.visit('/dashboard/admin/sams');
+            router.visit('/dashboard/admin/calendrier-sams');
         } finally {
             setLoading(false);
         }

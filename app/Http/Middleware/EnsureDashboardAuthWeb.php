@@ -14,7 +14,7 @@ class EnsureDashboardAuthWeb
     public function handle(Request $request, Closure $next): RedirectResponse|\Symfony\Component\HttpFoundation\Response
     {
         if (! $request->user()) {
-            return redirect('/dashboard/login');
+            return redirect('/login');
         }
 
         return $next($request);

@@ -40,8 +40,6 @@ class Appointment extends Model
             'appointmentTypeId' => ObjectId::class,
             'startAt' => 'datetime',
             'endAt' => 'datetime',
-            'patient' => 'array',
-            'transfer' => 'array',
         ];
     }
 
@@ -58,6 +56,49 @@ class Appointment extends Model
     public function appointmentType()
     {
         return $this->belongsTo(AppointmentType::class, 'appointmentTypeId');
+    }
+
+    public function setPatientAttribute(?array $value): void
+    {
+        if ($value === null) {
+            $this->attributes['patient'] = null;
+            return;
+        }
+
+        $allowedKeys = ['lastname', 'firstname', 'phone', 'company'];
+        $patient = [];
+
+        foreach ($allowedKeys as $key) {
+            if (! array_key_exists($key, $value)) {
+                continue;
+            }
+
+            $fieldValue = $value[$key];
+            if ($fieldValue === null) {
+                $patient[$key] = null;
+                continue;
+            }
+
+            if (is_scalar($fieldValue)) {
+                $patient[$key] = (string) $fieldValue;
+            }
+        }
+
+        $this->attributes['patient'] = $patient;
+    }
+
+    public function getPatientAttribute($value): ?array
+    {
+        if (is_array($value)) {
+            return $value;
+        }
+
+        if (is_string($value)) {
+            $decoded = json_decode($value, true);
+            return is_array($decoded) ? $decoded : null;
+        }
+
+        return null;
     }
 
     public function setTransferAttribute(?array $value): void

@@ -1,5 +1,5 @@
 import { FormEvent, useState } from 'react';
-import { Head, router } from '@inertiajs/react';
+import { Head, Link, router } from '@inertiajs/react';
 import { Button, Input } from '@heroui/react';
 
 import { GuestLayout } from '@/Layouts/GuestLayout';
@@ -24,7 +24,7 @@ const TokenLogin = () => {
             });
             savePatientContext(response.data.data);
             success('Token valide');
-            router.visit(`/patient/doctors/${response.data.data.doctorId}`);
+            router.visit('/prise-rdv');
         } catch {
             error('Token invalide ou expire');
         } finally {
@@ -33,14 +33,20 @@ const TokenLogin = () => {
     };
 
     return (
-        <GuestLayout>
+        <GuestLayout
+            headerAction={
+                <Link href="/login" className="text-sm text-foreground/70 hover:text-white">
+                    Acces medecin
+                </Link>
+            }
+        >
             <Head title="Acces patient" />
             <div className="space-y-6">
                 <div>
-                    <h1 className="text-3xl font-semibold text-white">Acces patient</h1>
-                    <p className="mt-2 text-sm text-foreground/70">
-                        Saisissez votre token temporaire pour acceder a la prise de rendez-vous.
-                    </p>
+                    <h1 className="text-3xl font-semibold text-white">
+                        Bienvenue sur notre plateforme de RDV medical
+                    </h1>
+                    <p className="mt-2 text-sm text-foreground/70">Saisissez votre token temporaire.</p>
                 </div>
                 <form onSubmit={handleSubmit} className="space-y-4">
                     <Input
@@ -51,7 +57,7 @@ const TokenLogin = () => {
                         placeholder="Entrer le token recu"
                     />
                     <Button color="primary" type="submit" isLoading={loading} className="w-full">
-                        Valider
+                        Acceder
                     </Button>
                 </form>
             </div>

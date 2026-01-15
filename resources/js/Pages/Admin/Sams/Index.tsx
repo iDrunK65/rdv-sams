@@ -34,7 +34,7 @@ const SamsIndex = () => {
                     title="Evenements SAMS"
                     subtitle="Gerez les evenements SAMS."
                     actions={
-                        <Button as={Link} href="/dashboard/admin/sams/create" color="primary">
+                        <Button as={Link} href="/dashboard/admin/calendrier-sams/create" color="primary">
                             Nouvel evenement
                         </Button>
                     }
@@ -52,7 +52,7 @@ const SamsIndex = () => {
                                         <p className="text-sm text-foreground/70">
                                             {formatDateTime(event.startAt)} - {formatDateTime(event.endAt)}
                                         </p>
-                                        <Button as={Link} href={`/dashboard/admin/sams/${id}/edit`} variant="flat">
+                                        <Button as={Link} href={`/dashboard/admin/calendrier-sams/${id}/edit`} variant="flat">
                                             Modifier
                                         </Button>
                                     </CardBody>

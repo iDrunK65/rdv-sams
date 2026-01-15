@@ -25,6 +25,11 @@ const viewOptions = [
     { key: 'listWeek', label: 'Agenda' },
 ] as const;
 
+const typeOptions = [
+    { key: 'doctor', label: 'Visite medicale' },
+    { key: 'specialty', label: 'Specialites' },
+] as const;
+
 type CalendarView = (typeof viewOptions)[number]['key'];
 type Selection = 'all' | Set<string>;
 
@@ -53,6 +58,7 @@ const CalendarsIndex = () => {
     const [appointments, setAppointments] = useState<Appointment[]>([]);
     const [doctors, setDoctors] = useState<Doctor[]>([]);
     const [selectedDoctorIds, setSelectedDoctorIds] = useState<string[]>([]);
+    const [selectedTypes, setSelectedTypes] = useState<string[]>(typeOptions.map((type) => type.key));
     const [loading, setLoading] = useState(true);
     const [appointmentsLoading, setAppointmentsLoading] = useState(false);
     const [viewTitle, setViewTitle] = useState('');
@@ -143,9 +149,16 @@ const CalendarsIndex = () => {
 
     const filteredAppointments = useMemo(() => {
         if (selectedDoctorIds.length === 0) return [];
-        const selection = new Set(selectedDoctorIds);
-        return appointments.filter((appointment) => selection.has(appointment.doctorId));
-    }, [appointments, selectedDoctorIds]);
+        const doctorSelection = new Set(selectedDoctorIds);
+        const typeSelection = new Set(selectedTypes);
+
+        return appointments.filter((appointment) => {
+            if (!doctorSelection.has(appointment.doctorId)) return false;
+            const calendar = calendarMap.get(appointment.calendarId);
+            if (!calendar) return false;
+            return typeSelection.has(calendar.scope);
+        });
+    }, [appointments, selectedDoctorIds, selectedTypes, calendarMap]);
 
     const events = useMemo<EventInput[]>(() => {
         return filteredAppointments.map((appointment) => {
@@ -192,6 +205,15 @@ const CalendarsIndex = () => {
         }
 
         setSelectedDoctorIds(Array.from(keys).map(String));
+    };
+
+    const handleTypeChange = (keys: Selection) => {
+        if (keys === 'all') {
+            setSelectedTypes(typeOptions.map((option) => option.key));
+            return;
+        }
+
+        setSelectedTypes(Array.from(keys).map(String));
     };
 
     const handleNavigate = (direction: 'prev' | 'next' | 'today') => {
@@ -261,6 +283,19 @@ const CalendarsIndex = () => {
                                     );
                                 })}
                             </Select>
+                            <Select
+                                label="Types"
+                                selectionMode="multiple"
+                                selectedKeys={new Set(selectedTypes)}
+                                onSelectionChange={handleTypeChange}
+                                className="min-w-[220px]"
+                            >
+                                {typeOptions.map((option) => (
+                                    <SelectItem key={option.key} value={option.key}>
+                                        {option.label}
+                                    </SelectItem>
+                                ))}
+                            </Select>
                             <div className="flex flex-wrap gap-2">
                                 {viewOptions.map((view) => (
                                     <Button
@@ -324,7 +359,7 @@ const CalendarsIndex = () => {
             <ConfirmDialog
                 isOpen={cancelOpen}
                 title="Annuler le rendez-vous"
-                description="Confirmez l'annulation du rendez-vous selectionne."
+                description="Confirmez l annulation du rendez-vous selectionne."
                 confirmLabel="Annuler"
                 confirmColor="danger"
                 isLoading={cancelLoading}

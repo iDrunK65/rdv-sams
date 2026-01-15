@@ -1,8 +1,9 @@
 import { FormEvent, useEffect, useState } from 'react';
-import { Head } from '@inertiajs/react';
+import { Head, Link } from '@inertiajs/react';
 import { Button, Card, CardBody, Spinner, Textarea } from '@heroui/react';
 
 import { PageHeader } from '@/Components/ui/PageHeader';
+import { SectionCard } from '@/Components/ui/SectionCard';
 import { DashboardLayout } from '@/Layouts/DashboardLayout';
 import { api } from '@/lib/api';
 import type { ApiResponse, Calendar } from '@/lib/types';
@@ -51,17 +52,86 @@ const CalendarShow = ({ calendarId }: CalendarShowProps) => {
 
     return (
         <DashboardLayout>
-            <Head title="Calendrier" />
+            <Head title="Configuration calendrier" />
             <div className="space-y-6">
-                <PageHeader title="Calendrier" subtitle="Mettez a jour le message envoye au patient." />
+                <PageHeader
+                    title="Configuration du calendrier"
+                    subtitle="Gerez les parametres de ce calendrier."
+                    actions={
+                        <Button as={Link} href="/dashboard" variant="flat">
+                            Retour dashboard
+                        </Button>
+                    }
+                />
+
                 {loading ? (
                     <Spinner />
                 ) : (
-                    <Card className="border border-white/10 bg-white/5">
-                        <CardBody className="space-y-4">
+                    <div className="space-y-6">
+                        <Card className="border border-white/10 bg-white/5">
+                            <CardBody className="space-y-2">
+                                <p className="text-sm text-foreground/70">Calendrier</p>
+                                <h2 className="text-xl font-semibold">{calendar?.label || calendar?.scope}</h2>
+                                {calendar?.color ? (
+                                    <div className="flex items-center gap-2 text-sm text-foreground/70">
+                                        <span
+                                            className="h-3 w-3 rounded-full"
+                                            style={{ backgroundColor: calendar.color }}
+                                        />
+                                        Couleur actuelle
+                                    </div>
+                                ) : null}
+                            </CardBody>
+                        </Card>
+
+                        <SectionCard
+                            title="Disponibilites"
+                            description="Definissez les heures disponibles et les exceptions."
+                            actions={
+                                <div className="flex gap-2">
+                                    <Button as={Link} href={`/dashboard/config/${calendarId}/rules`} variant="flat" size="sm">
+                                        Regles
+                                    </Button>
+                                    <Button
+                                        as={Link}
+                                        href={`/dashboard/config/${calendarId}/exceptions`}
+                                        variant="flat"
+                                        size="sm"
+                                    >
+                                        Exceptions
+                                    </Button>
+                                </div>
+                            }
+                        >
                             <p className="text-sm text-foreground/70">
-                                Calendrier: {calendar?.label || calendar?.scope}
+                                Utilisez les regles pour definir les horaires de base et ajoutez des exceptions pour
+                                ajuster un jour precis.
                             </p>
+                        </SectionCard>
+
+                        <SectionCard
+                            title="Types de rendez-vous"
+                            description="Duree, buffers et libelles."
+                            actions={
+                                <Button
+                                    as={Link}
+                                    href={`/dashboard/config/${calendarId}/appointment-types`}
+                                    variant="flat"
+                                    size="sm"
+                                >
+                                    Gerer
+                                </Button>
+                            }
+                        >
+                            <p className="text-sm text-foreground/70">
+                                Configurez la duree et les buffers avant/apres pour les rendez-vous.
+                            </p>
+                        </SectionCard>
+
+                        <SectionCard
+                            title="Message patient"
+                            description="Message envoye lors de la generation du token."
+                        >
                             <form onSubmit={handleSubmit} className="space-y-4">
                                 <Textarea
                                     label="Message template"
@@ -73,8 +143,8 @@ const CalendarShow = ({ calendarId }: CalendarShowProps) => {
                                     Enregistrer
                                 </Button>
                             </form>
-                        </CardBody>
-                    </Card>
+                        </SectionCard>
+                    </div>
                 )}
             </div>
         </DashboardLayout>

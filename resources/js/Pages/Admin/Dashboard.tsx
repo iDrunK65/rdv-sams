@@ -13,25 +13,25 @@ const AdminDashboard = () => {
                 <div className="grid gap-4 md:grid-cols-3">
                     <Card className="border border-white/10 bg-white/5">
                         <CardBody className="space-y-3">
-                            <h3 className="text-lg font-semibold">Medecins</h3>
-                            <Button as={Link} href="/dashboard/admin/doctors" color="primary">
+                            <h3 className="text-lg font-semibold">Comptes</h3>
+                            <Button as={Link} href="/dashboard/admin/comptes" color="primary">
                                 Gerer
                             </Button>
                         </CardBody>
                     </Card>
                     <Card className="border border-white/10 bg-white/5">
                         <CardBody className="space-y-3">
-                            <h3 className="text-lg font-semibold">SAMS</h3>
-                            <Button as={Link} href="/dashboard/admin/sams" color="primary">
+                            <h3 className="text-lg font-semibold">Calendrier SAMS</h3>
+                            <Button as={Link} href="/dashboard/admin/calendrier-sams" color="primary">
                                 Gerer
                             </Button>
                         </CardBody>
                     </Card>
                     <Card className="border border-white/10 bg-white/5">
                         <CardBody className="space-y-3">
-                            <h3 className="text-lg font-semibold">Rendez-vous</h3>
-                            <Button as={Link} href="/dashboard/admin/appointments" color="primary">
-                                Voir
+                            <h3 className="text-lg font-semibold">Specialites</h3>
+                            <Button as={Link} href="/dashboard/admin/specialites" color="primary">
+                                Gerer
                             </Button>
                         </CardBody>
                     </Card>

@@ -34,8 +34,8 @@ const DoctorsCreate = () => {
                 specialtyIds: specialties,
                 isActive,
             });
-            success('Medecin cree');
-            router.visit('/dashboard/admin/doctors');
+            success('Compte cree');
+            router.visit('/dashboard/admin/comptes');
         } finally {
             setLoading(false);
         }
@@ -43,9 +43,9 @@ const DoctorsCreate = () => {
 
     return (
         <AdminLayout>
-            <Head title="Creer un medecin" />
+            <Head title="Creer un compte" />
             <div className="space-y-6">
-                <PageHeader title="Creer un medecin" subtitle="Ajoutez un nouveau compte medecin." />
+                <PageHeader title="Creer un compte" subtitle="Ajoutez un nouveau compte medecin." />
                 <form onSubmit={handleSubmit} className="space-y-4">
                     <Input label="Identifiant" value={identifier} onValueChange={setIdentifier} isRequired />
                     <Input label="Nom" value={name} onValueChange={setName} />

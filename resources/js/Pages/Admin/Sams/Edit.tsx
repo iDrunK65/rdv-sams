@@ -59,7 +59,7 @@ const SamsEdit = ({ id }: SamsEditProps) => {
                 source: source || undefined,
             });
             success('Evenement mis a jour');
-            router.visit('/dashboard/admin/sams');
+            router.visit('/dashboard/admin/calendrier-sams');
         } finally {
             setSaving(false);
         }
@@ -68,7 +68,7 @@ const SamsEdit = ({ id }: SamsEditProps) => {
     const handleDelete = async () => {
         await api.delete(`/api/admin/sams/events/${id}`);
         success('Evenement supprime');
-        router.visit('/dashboard/admin/sams');
+        router.visit('/dashboard/admin/calendrier-sams');
     };
 
     if (loading) {
