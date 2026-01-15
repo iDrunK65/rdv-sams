@@ -3,6 +3,7 @@
 use App\Http\Controllers\Api\Admin\AppointmentManagementController;
 use App\Http\Controllers\Api\Admin\DoctorManagementController;
 use App\Http\Controllers\Api\Admin\SamsManagementController;
+use App\Http\Controllers\Api\Admin\SpecialtyManagementController;
 use App\Http\Controllers\Api\AppointmentTypes\AppointmentTypeController;
 use App\Http\Controllers\Api\Appointments\AppointmentController;
 use App\Http\Controllers\Api\Appointments\AppointmentTransferController;
@@ -34,6 +35,7 @@ Route::prefix('patient')->group(function () {
     Route::middleware('patient.token')->group(function () {
         Route::get('doctors/{doctorId}', [DoctorController::class, 'showPatient']);
         Route::get('doctors/{doctorId}/calendars', [CalendarController::class, 'patientIndex']);
+        Route::get('calendars/{calendarId}/appointment-types', [AppointmentTypeController::class, 'patientIndex']);
         Route::get('availability/slots', [AvailabilitySlotController::class, 'patientIndex']);
         Route::post('appointments', [AppointmentController::class, 'storePatient']);
     });
@@ -92,4 +94,9 @@ Route::prefix('admin')->middleware(['auth:sanctum', 'role:admin'])->group(functi
     Route::post('sams/events', [SamsManagementController::class, 'store']);
     Route::patch('sams/events/{id}', [SamsManagementController::class, 'update']);
     Route::delete('sams/events/{id}', [SamsManagementController::class, 'destroy']);
+
+    Route::get('specialties', [SpecialtyManagementController::class, 'index']);
+    Route::post('specialties', [SpecialtyManagementController::class, 'store']);
+    Route::patch('specialties/{id}', [SpecialtyManagementController::class, 'update']);
+    Route::delete('specialties/{id}', [SpecialtyManagementController::class, 'destroy']);
 });

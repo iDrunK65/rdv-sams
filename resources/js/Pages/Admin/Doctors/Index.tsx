@@ -2,16 +2,7 @@ import { useEffect, useMemo, useState } from 'react';
 import { Head } from '@inertiajs/react';
 import {
     Button,
-    Input,
-    Modal,
-    ModalBody,
-    ModalContent,
-    ModalFooter,
-    ModalHeader,
-    Select,
-    SelectItem,
     Spinner,
-    Switch,
     Table,
     TableBody,
     TableCell,
@@ -20,11 +11,12 @@ import {
     TableRow,
 } from '@heroui/react';
 
+import { AccountModal } from '@/Components/admin/AccountModal';
 import { ConfirmDialog } from '@/Components/ui/ConfirmDialog';
 import { PageHeader } from '@/Components/ui/PageHeader';
 import { AdminLayout } from '@/Layouts/AdminLayout';
-import { api } from '@/lib/api';
-import type { ApiResponse, Calendar, User } from '@/lib/types';
+import { adminApi } from '@/lib/api';
+import type { ApiResponse, Specialty, User } from '@/lib/types';
 import { useToast } from '@/hooks/useToast';
 
 type SpecialtyOption = {
@@ -84,25 +76,19 @@ const DoctorsIndex = () => {
     }, [specialties]);
 
     const loadDoctors = async () => {
-        const response = await api.get<ApiResponse<User[]>>('/api/admin/doctors');
-        setDoctors(response.data.data);
+        const response = await adminApi.listDoctors();
+        setDoctors((response.data as ApiResponse<User[]>).data);
     };
 
     const loadSpecialties = async () => {
-        const response = await api.get<ApiResponse<Calendar[]>>('/api/calendars');
-        const map = new Map<string, string>();
-
-        response.data.data.forEach((calendar) => {
-            if (calendar.scope !== 'specialty') return;
-            const specialtyId = calendar.specialtyId || '';
-            if (!specialtyId) return;
-            if (!map.has(specialtyId)) {
-                map.set(specialtyId, calendar.label || 'Specialite');
-            }
-        });
-
-        const items = Array.from(map.entries()).map(([id, label]) => ({ id, label }));
-        items.sort((a, b) => a.label.localeCompare(b.label));
+        const response = await adminApi.specialties();
+        const items = ((response.data as ApiResponse<Specialty[]>).data || [])
+            .map((specialty) => ({
+                id: specialty._id || specialty.id || '',
+                label: specialty.label,
+            }))
+            .filter((item) => item.id.length > 0)
+            .sort((a, b) => a.label.localeCompare(b.label));
         setSpecialties(items);
     };
 
@@ -159,13 +145,13 @@ const DoctorsIndex = () => {
 
             if (editing) {
                 const id = editing._id || editing.id || '';
-                await api.patch(`/api/admin/doctors/${id}`, payload);
+                await adminApi.updateDoctor(id, payload);
                 if (form.password) {
-                    await api.post(`/api/admin/doctors/${id}/reset-password`, { password: form.password });
+                    await adminApi.resetDoctorPassword(id, { password: form.password });
                 }
                 success('Compte mis a jour');
             } else {
-                await api.post('/api/admin/doctors', { ...payload, password: form.password });
+                await adminApi.createDoctor({ ...payload, password: form.password });
                 success('Compte cree');
             }
 
@@ -186,7 +172,7 @@ const DoctorsIndex = () => {
         const id = deleteTarget._id || deleteTarget.id || '';
         setDeleting(true);
         try {
-            await api.delete(`/api/admin/doctors/${id}`);
+            await adminApi.deleteDoctor(id);
             success('Compte supprime');
             setDeleteOpen(false);
             await loadDoctors();
@@ -259,92 +245,16 @@ const DoctorsIndex = () => {
                 )}
             </div>
 
-            <Modal isOpen={modalOpen} onClose={closeModal} backdrop="blur" size="lg">
-                <ModalContent>
-                    <ModalHeader>{editing ? 'Modifier un compte' : 'Nouveau compte'}</ModalHeader>
-                    <ModalBody className="space-y-3">
-                        <div className="grid gap-3 sm:grid-cols-2">
-                            <Input
-                                label="Prenom"
-                                value={form.firstName}
-                                onValueChange={(value) => setForm({ ...form, firstName: value })}
-                            />
-                            <Input
-                                label="Nom"
-                                value={form.lastName}
-                                onValueChange={(value) => setForm({ ...form, lastName: value })}
-                            />
-                        </div>
-                        <Input
-                            label="Identifiant"
-                            value={form.identifier}
-                            onValueChange={(value) => setForm({ ...form, identifier: value })}
-                            isRequired
-                        />
-                        <Input
-                            label="Mot de passe"
-                            type="password"
-                            value={form.password}
-                            onValueChange={(value) => setForm({ ...form, password: value })}
-                            isRequired={!editing}
-                        />
-                        <Select
-                            label="Specialites"
-                            selectionMode="multiple"
-                            selectedKeys={new Set(form.specialtyIds)}
-                            onSelectionChange={(keys) => {
-                                if (keys === 'all') {
-                                    setForm({ ...form, specialtyIds: specialties.map((item) => item.id) });
-                                    return;
-                                }
-                                setForm({ ...form, specialtyIds: Array.from(keys).map(String) });
-                            }}
-                            isDisabled={specialties.length === 0}
-                        >
-                            {specialties.map((specialty) => (
-                                <SelectItem key={specialty.id} value={specialty.id}>
-                                    {specialty.label}
-                                </SelectItem>
-                            ))}
-                        </Select>
-                        {specialties.length === 0 ? (
-                            <p className="text-xs text-foreground/60">
-                                Aucune specialite chargee. Ajoutez des calendriers de specialite pour les rendre visibles.
-                            </p>
-                        ) : null}
-                        <Select
-                            label="Roles"
-                            selectionMode="multiple"
-                            selectedKeys={new Set(form.roles)}
-                            onSelectionChange={(keys) => {
-                                if (keys === 'all') {
-                                    setForm({ ...form, roles: ['doctor', 'admin'] });
-                                    return;
-                                }
-                                setForm({ ...form, roles: Array.from(keys).map(String) });
-                            }}
-                        >
-                            <SelectItem key="doctor" value="doctor">
-                                doctor
-                            </SelectItem>
-                            <SelectItem key="admin" value="admin">
-                                admin
-                            </SelectItem>
-                        </Select>
-                        <Switch isSelected={form.isActive} onValueChange={(value) => setForm({ ...form, isActive: value })}>
-                            Actif
-                        </Switch>
-                    </ModalBody>
-                    <ModalFooter className="gap-2">
-                        <Button variant="light" onPress={closeModal}>
-                            Annuler
-                        </Button>
-                        <Button color="primary" onPress={handleSave} isLoading={saving}>
-                            Enregistrer
-                        </Button>
-                    </ModalFooter>
-                </ModalContent>
-            </Modal>
+            <AccountModal
+                isOpen={modalOpen}
+                editing={editing}
+                form={form}
+                specialties={specialties}
+                onChange={setForm}
+                onClose={closeModal}
+                onSave={handleSave}
+                isSaving={saving}
+            />
 
             <ConfirmDialog
                 isOpen={deleteOpen}

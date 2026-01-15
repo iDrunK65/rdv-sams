@@ -8,7 +8,8 @@ import listPlugin from '@fullcalendar/list';
 import interactionPlugin from '@fullcalendar/interaction';
 import type { DatesSetArg, EventClickArg, EventInput } from '@fullcalendar/core';
 
-import { TransferModal } from '@/Components/dashboard/TransferModal';
+import { AppointmentDetailsDrawer } from '@/Components/dashboard/AppointmentDetailsDrawer';
+import { TransferAppointmentModal } from '@/Components/dashboard/TransferAppointmentModal';
 import { ConfirmDialog } from '@/Components/ui/ConfirmDialog';
 import { PageHeader } from '@/Components/ui/PageHeader';
 import { DashboardLayout } from '@/Layouts/DashboardLayout';
@@ -16,7 +17,6 @@ import { useIsAdmin } from '@/hooks/useAuth';
 import { api } from '@/lib/api';
 import { toIsoUtc } from '@/lib/date';
 import type { ApiResponse, Appointment, Calendar, Doctor } from '@/lib/types';
-import { EventDrawer } from '../Calendar/EventDrawer';
 
 const viewOptions = [
     { key: 'dayGridMonth', label: 'Mois' },
@@ -252,7 +252,7 @@ const CalendarsIndex = () => {
                 <div className="calendar-shell p-4">
                     <div className="flex flex-col gap-4 lg:flex-row lg:items-center lg:justify-between">
                         <div className="space-y-1">
-                            <p className="text-sm text-foreground/60">{viewTitle || 'Calendrier'}</p>
+                            <p className="text-sm text-neutral-400">{viewTitle || 'Calendrier'}</p>
                             <div className="flex flex-wrap items-center gap-2">
                                 <Button size="sm" variant="flat" onPress={() => handleNavigate('today')}>
                                     Aujourd hui
@@ -310,7 +310,7 @@ const CalendarsIndex = () => {
                             </div>
                         </div>
                     </div>
-                    <Card className="mt-4 border border-white/10 bg-black/30">
+                    <Card className="mt-4 border border-neutral-800 bg-neutral-900/60">
                         <CardBody className="relative">
                             {appointmentsLoading ? (
                                 <div className="absolute inset-0 z-10 flex items-center justify-center bg-black/40">
@@ -337,7 +337,7 @@ const CalendarsIndex = () => {
                 </div>
             </div>
 
-            <EventDrawer
+            <AppointmentDetailsDrawer
                 isOpen={drawerOpen}
                 appointment={selectedAppointment}
                 onClose={() => {
@@ -348,7 +348,7 @@ const CalendarsIndex = () => {
                 onCancel={() => setCancelOpen(true)}
             />
 
-            <TransferModal
+            <TransferAppointmentModal
                 isOpen={transferOpen}
                 appointmentId={selectedAppointment?._id || selectedAppointment?.id || null}
                 doctors={doctors}

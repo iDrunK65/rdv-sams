@@ -26,7 +26,7 @@ export const ConfirmDialog = ({
             <ModalContent>
                 <ModalHeader>{title}</ModalHeader>
                 <ModalBody>
-                    {description ? <p className="text-sm text-foreground/70">{description}</p> : null}
+                    {description ? <p className="text-sm text-neutral-400">{description}</p> : null}
                 </ModalBody>
                 <ModalFooter className="gap-2">
                     <Button variant="light" onPress={onClose}>

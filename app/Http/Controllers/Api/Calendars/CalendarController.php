@@ -132,7 +132,11 @@ class CalendarController extends Controller
             }
         }
 
-        $calendar->message = $request->validated()['message'];
+        $data = $request->validated();
+        $calendar->message = $data['message'];
+        if (array_key_exists('color', $data)) {
+            $calendar->color = $data['color'];
+        }
         $calendar->save();
 
         return response()->json([

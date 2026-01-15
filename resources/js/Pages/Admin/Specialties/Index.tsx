@@ -2,12 +2,6 @@ import { useEffect, useState } from 'react';
 import { Head } from '@inertiajs/react';
 import {
     Button,
-    Input,
-    Modal,
-    ModalBody,
-    ModalContent,
-    ModalFooter,
-    ModalHeader,
     Spinner,
     Switch,
     Table,
@@ -18,43 +12,44 @@ import {
     TableRow,
 } from '@heroui/react';
 
+import { SpecialtyModal } from '@/Components/admin/SpecialtyModal';
+import { ConfirmDialog } from '@/Components/ui/ConfirmDialog';
 import { PageHeader } from '@/Components/ui/PageHeader';
 import { AdminLayout } from '@/Layouts/AdminLayout';
-import { api } from '@/lib/api';
-import type { ApiResponse, Calendar } from '@/lib/types';
+import { adminApi } from '@/lib/api';
+import type { ApiResponse, Specialty } from '@/lib/types';
+import { useToast } from '@/hooks/useToast';
 
-type SpecialtyRow = {
-    id: string;
+type SpecialtyForm = {
     label: string;
-    color?: string | null;
+    color: string;
+    isActive: boolean;
+};
+
+const emptyForm: SpecialtyForm = {
+    label: '',
+    color: '#3B82F6',
+    isActive: true,
 };
 
 const SpecialtiesIndex = () => {
     const [loading, setLoading] = useState(true);
-    const [specialties, setSpecialties] = useState<SpecialtyRow[]>([]);
+    const [specialties, setSpecialties] = useState<Specialty[]>([]);
     const [modalOpen, setModalOpen] = useState(false);
-    const [editing, setEditing] = useState<SpecialtyRow | null>(null);
-    const [form, setForm] = useState({ label: '', color: '#3B82F6' });
+    const [editing, setEditing] = useState<Specialty | null>(null);
+    const [form, setForm] = useState<SpecialtyForm>(emptyForm);
+    const [saving, setSaving] = useState(false);
+    const [deleteOpen, setDeleteOpen] = useState(false);
+    const [deleteTarget, setDeleteTarget] = useState<Specialty | null>(null);
+    const [deleting, setDeleting] = useState(false);
+    const { success } = useToast();
 
     const loadSpecialties = async () => {
         setLoading(true);
         try {
-            const response = await api.get<ApiResponse<Calendar[]>>('/api/calendars');
-            const map = new Map<string, SpecialtyRow>();
-            response.data.data.forEach((calendar) => {
-                if (calendar.scope !== 'specialty') return;
-                const specialtyId = calendar.specialtyId || '';
-                if (!specialtyId) return;
-                if (!map.has(specialtyId)) {
-                    map.set(specialtyId, {
-                        id: specialtyId,
-                        label: calendar.label || 'Specialite',
-                        color: calendar.color || null,
-                    });
-                }
-            });
-            const items = Array.from(map.values()).sort((a, b) => a.label.localeCompare(b.label));
-            setSpecialties(items);
+            const response = await adminApi.specialties();
+            const data = (response.data as ApiResponse<Specialty[]>).data || [];
+            setSpecialties(data.slice().sort((a, b) => a.label.localeCompare(b.label)));
         } finally {
             setLoading(false);
         }
@@ -66,22 +61,82 @@ const SpecialtiesIndex = () => {
 
     const openCreate = () => {
         setEditing(null);
-        setForm({ label: '', color: '#3B82F6' });
+        setForm(emptyForm);
         setModalOpen(true);
     };
 
-    const openEdit = (specialty: SpecialtyRow) => {
+    const openEdit = (specialty: Specialty) => {
         setEditing(specialty);
-        setForm({ label: specialty.label, color: specialty.color || '#3B82F6' });
+        setForm({
+            label: specialty.label,
+            color: specialty.color || '#3B82F6',
+            isActive: specialty.isActive ?? true,
+        });
         setModalOpen(true);
     };
 
     const closeModal = () => {
         setModalOpen(false);
         setEditing(null);
+        setForm(emptyForm);
     };
 
-    const isActionDisabled = true;
+    const handleSave = async () => {
+        setSaving(true);
+        try {
+            if (editing) {
+                const id = editing._id || editing.id || '';
+                await adminApi.updateSpecialty(id, {
+                    label: form.label,
+                    color: form.color,
+                    isActive: form.isActive,
+                });
+                success('Specialite mise a jour');
+            } else {
+                await adminApi.createSpecialty({
+                    label: form.label,
+                    color: form.color,
+                    isActive: form.isActive,
+                });
+                success('Specialite creee');
+            }
+            closeModal();
+            await loadSpecialties();
+        } finally {
+            setSaving(false);
+        }
+    };
+
+    const confirmDelete = (specialty: Specialty) => {
+        setDeleteTarget(specialty);
+        setDeleteOpen(true);
+    };
+
+    const handleDelete = async () => {
+        if (!deleteTarget) return;
+        const id = deleteTarget._id || deleteTarget.id || '';
+        setDeleting(true);
+        try {
+            await adminApi.deleteSpecialty(id);
+            success('Specialite supprimee');
+            setDeleteOpen(false);
+            await loadSpecialties();
+        } finally {
+            setDeleting(false);
+        }
+    };
+
+    const handleToggleActive = async (specialty: Specialty, value: boolean) => {
+        const id = specialty._id || specialty.id || '';
+        if (!id) return;
+        await adminApi.updateSpecialty(id, { isActive: value });
+        setSpecialties((current) =>
+            current.map((item) => {
+                const itemId = item._id || item.id || '';
+                return itemId === id ? { ...item, isActive: value } : item;
+            }),
+        );
+    };
 
     return (
         <AdminLayout>
@@ -91,15 +146,11 @@ const SpecialtiesIndex = () => {
                     title="Specialites"
                     subtitle="Gerez la liste des specialites."
                     actions={
-                        <Button color="primary" onPress={openCreate} isDisabled={isActionDisabled}>
+                        <Button color="primary" onPress={openCreate}>
                             Nouvelle specialite
                         </Button>
                     }
                 />
-
-                <p className="text-sm text-foreground/60">
-                    La gestion des specialites depend d endpoints backend non exposes pour le moment.
-                </p>
 
                 {loading ? (
                     <Spinner />
@@ -111,74 +162,70 @@ const SpecialtiesIndex = () => {
                             <TableColumn>Actions</TableColumn>
                         </TableHeader>
                         <TableBody emptyContent="Aucune specialite">
-                            {specialties.map((specialty) => (
-                                <TableRow key={specialty.id}>
-                                    <TableCell>
-                                        <div className="flex items-center gap-2">
-                                            {specialty.color ? (
-                                                <span
-                                                    className="h-3 w-3 rounded-full"
-                                                    style={{ backgroundColor: specialty.color }}
-                                                />
-                                            ) : null}
-                                            <span className="font-semibold">{specialty.label}</span>
-                                        </div>
-                                    </TableCell>
-                                    <TableCell>
-                                        <Switch isSelected isDisabled />
-                                    </TableCell>
-                                    <TableCell>
-                                        <div className="flex flex-wrap gap-2">
-                                            <Button
-                                                size="sm"
-                                                variant="flat"
-                                                onPress={() => openEdit(specialty)}
-                                                isDisabled={isActionDisabled}
-                                            >
-                                                Modifier
-                                            </Button>
-                                            <Button size="sm" color="danger" variant="flat" isDisabled={isActionDisabled}>
-                                                Supprimer
-                                            </Button>
-                                        </div>
-                                    </TableCell>
-                                </TableRow>
-                            ))}
+                            {specialties.map((specialty) => {
+                                const id = specialty._id || specialty.id || '';
+                                return (
+                                    <TableRow key={id}>
+                                        <TableCell>
+                                            <div className="flex items-center gap-2">
+                                                {specialty.color ? (
+                                                    <span
+                                                        className="h-3 w-3 rounded-full"
+                                                        style={{ backgroundColor: specialty.color }}
+                                                    />
+                                                ) : null}
+                                                <span className="font-semibold">{specialty.label}</span>
+                                            </div>
+                                        </TableCell>
+                                        <TableCell>
+                                            <Switch
+                                                isSelected={specialty.isActive ?? true}
+                                                onValueChange={(value) => handleToggleActive(specialty, value)}
+                                            />
+                                        </TableCell>
+                                        <TableCell>
+                                            <div className="flex flex-wrap gap-2">
+                                                <Button size="sm" variant="flat" onPress={() => openEdit(specialty)}>
+                                                    Modifier
+                                                </Button>
+                                                <Button
+                                                    size="sm"
+                                                    color="danger"
+                                                    variant="flat"
+                                                    onPress={() => confirmDelete(specialty)}
+                                                >
+                                                    Supprimer
+                                                </Button>
+                                            </div>
+                                        </TableCell>
+                                    </TableRow>
+                                );
+                            })}
                         </TableBody>
                     </Table>
                 )}
             </div>
 
-            <Modal isOpen={modalOpen} onClose={closeModal} backdrop="blur" size="lg">
-                <ModalContent>
-                    <ModalHeader>{editing ? 'Modifier une specialite' : 'Nouvelle specialite'}</ModalHeader>
-                    <ModalBody className="space-y-3">
-                        <Input
-                            label="Nom de la specialite"
-                            value={form.label}
-                            onValueChange={(value) => setForm({ ...form, label: value })}
-                            isRequired
-                        />
-                        <Input
-                            label="Couleur"
-                            type="color"
-                            value={form.color}
-                            onValueChange={(value) => setForm({ ...form, color: value })}
-                        />
-                        <p className="text-xs text-foreground/60">
-                            Module en lecture seule pour le moment.
-                        </p>
-                    </ModalBody>
-                    <ModalFooter className="gap-2">
-                        <Button variant="light" onPress={closeModal}>
-                            Fermer
-                        </Button>
-                        <Button color="primary" isDisabled>
-                            Enregistrer
-                        </Button>
-                    </ModalFooter>
-                </ModalContent>
-            </Modal>
+            <SpecialtyModal
+                isOpen={modalOpen}
+                editing={editing}
+                form={form}
+                onChange={setForm}
+                onClose={closeModal}
+                onSave={handleSave}
+                isSaving={saving}
+            />
+
+            <ConfirmDialog
+                isOpen={deleteOpen}
+                title="Supprimer la specialite"
+                description="Confirmez la suppression de la specialite selectionnee."
+                confirmLabel="Supprimer"
+                confirmColor="danger"
+                isLoading={deleting}
+                onClose={() => setDeleteOpen(false)}
+                onConfirm={handleDelete}
+            />
         </AdminLayout>
     );
 };

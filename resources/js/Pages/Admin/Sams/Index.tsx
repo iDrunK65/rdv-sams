@@ -1,18 +1,6 @@
 import { useCallback, useEffect, useMemo, useRef, useState } from 'react';
 import { Head } from '@inertiajs/react';
-import {
-    Button,
-    Card,
-    CardBody,
-    Input,
-    Modal,
-    ModalBody,
-    ModalContent,
-    ModalFooter,
-    ModalHeader,
-    Spinner,
-    Textarea,
-} from '@heroui/react';
+import { Button, Card, CardBody, Spinner } from '@heroui/react';
 import FullCalendar from '@fullcalendar/react';
 import dayGridPlugin from '@fullcalendar/daygrid';
 import timeGridPlugin from '@fullcalendar/timegrid';
@@ -20,10 +8,11 @@ import listPlugin from '@fullcalendar/list';
 import interactionPlugin from '@fullcalendar/interaction';
 import type { DateClickArg, DatesSetArg, EventClickArg, EventInput } from '@fullcalendar/core';
 
+import { SamsEventModal } from '@/Components/admin/SamsEventModal';
 import { ConfirmDialog } from '@/Components/ui/ConfirmDialog';
 import { PageHeader } from '@/Components/ui/PageHeader';
 import { AdminLayout } from '@/Layouts/AdminLayout';
-import { api } from '@/lib/api';
+import { adminApi } from '@/lib/api';
 import { toDateTimeLocal, toIsoUtc } from '@/lib/date';
 import type { ApiResponse, SamsEvent } from '@/lib/types';
 import { useToast } from '@/hooks/useToast';
@@ -82,8 +71,8 @@ const SamsIndex = () => {
                   to: toIsoUtc(range.end),
               }
             : undefined;
-        const response = await api.get<ApiResponse<SamsEvent[]>>('/api/admin/sams/events', { params });
-        setEvents(response.data.data);
+        const response = await adminApi.samsEvents(params);
+        setEvents((response.data as ApiResponse<SamsEvent[]>).data);
     }, []);
 
     useEffect(() => {
@@ -198,10 +187,10 @@ const SamsIndex = () => {
 
             if (editing) {
                 const id = editing._id || editing.id || '';
-                await api.patch(`/api/admin/sams/events/${id}`, payload);
+                await adminApi.updateSamsEvent(id, payload);
                 success('Evenement mis a jour');
             } else {
-                await api.post('/api/admin/sams/events', payload);
+                await adminApi.createSamsEvent(payload);
                 success('Evenement cree');
             }
 
@@ -222,7 +211,7 @@ const SamsIndex = () => {
         const id = deleteTarget._id || deleteTarget.id || '';
         setDeleting(true);
         try {
-            await api.delete(`/api/admin/sams/events/${id}`);
+            await adminApi.deleteSamsEvent(id);
             success('Evenement supprime');
             setDeleteOpen(false);
             await loadEvents(viewRange);
@@ -248,7 +237,7 @@ const SamsIndex = () => {
                 <div className="calendar-shell p-4">
                     <div className="flex flex-col gap-4 lg:flex-row lg:items-center lg:justify-between">
                         <div className="space-y-1">
-                            <p className="text-sm text-foreground/60">{viewTitle || 'Calendrier'}</p>
+                            <p className="text-sm text-neutral-400">{viewTitle || 'Calendrier'}</p>
                             <div className="flex flex-wrap items-center gap-2">
                                 <Button size="sm" variant="flat" onPress={() => handleNavigate('today')}>
                                     Aujourd hui
@@ -274,7 +263,7 @@ const SamsIndex = () => {
                             ))}
                         </div>
                     </div>
-                    <Card className="mt-4 border border-white/10 bg-black/30">
+                    <Card className="mt-4 border border-neutral-800 bg-neutral-900/60">
                         <CardBody className="relative">
                             {loading ? (
                                 <div className="absolute inset-0 z-10 flex items-center justify-center bg-black/40">
@@ -302,56 +291,16 @@ const SamsIndex = () => {
                 </div>
             </div>
 
-            <Modal isOpen={modalOpen} onClose={closeModal} backdrop="blur" size="lg">
-                <ModalContent>
-                    <ModalHeader>{editing ? 'Modifier un evenement' : 'Nouvel evenement'}</ModalHeader>
-                    <ModalBody className="space-y-3">
-                        <Input
-                            label="Titre"
-                            value={form.title}
-                            onValueChange={(value) => setForm({ ...form, title: value })}
-                            isRequired
-                        />
-                        <Input
-                            label="Debut"
-                            type="datetime-local"
-                            value={form.startAt}
-                            onValueChange={(value) => setForm({ ...form, startAt: value })}
-                            isRequired
-                        />
-                        <Input
-                            label="Fin"
-                            type="datetime-local"
-                            value={form.endAt}
-                            onValueChange={(value) => setForm({ ...form, endAt: value })}
-                            isRequired
-                        />
-                        <Input
-                            label="Localisation"
-                            value={form.location}
-                            onValueChange={(value) => setForm({ ...form, location: value })}
-                        />
-                        <Textarea
-                            label="Description"
-                            value={form.description}
-                            onValueChange={(value) => setForm({ ...form, description: value })}
-                        />
-                        {editing ? (
-                            <Button color="danger" variant="flat" onPress={() => confirmDelete(editing)}>
-                                Supprimer
-                            </Button>
-                        ) : null}
-                    </ModalBody>
-                    <ModalFooter className="gap-2">
-                        <Button variant="light" onPress={closeModal}>
-                            Annuler
-                        </Button>
-                        <Button color="primary" onPress={handleSave} isLoading={saving}>
-                            Enregistrer
-                        </Button>
-                    </ModalFooter>
-                </ModalContent>
-            </Modal>
+            <SamsEventModal
+                isOpen={modalOpen}
+                editing={editing}
+                form={form}
+                onChange={setForm}
+                onClose={closeModal}
+                onSave={handleSave}
+                onDelete={editing ? () => confirmDelete(editing) : undefined}
+                isSaving={saving}
+            />
 
             <ConfirmDialog
                 isOpen={deleteOpen}

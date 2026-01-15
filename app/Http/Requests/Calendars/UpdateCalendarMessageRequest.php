@@ -14,6 +14,7 @@ class UpdateCalendarMessageRequest extends FormRequest
     {
         return [
             'message' => ['required', 'string'],
+            'color' => ['nullable', 'regex:/^#[0-9A-Fa-f]{6}$/'],
         ];
     }
 }

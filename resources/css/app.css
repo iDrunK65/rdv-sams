@@ -3,6 +3,7 @@
 @config '../../tailwind.config.cjs';
 
 @import 'tw-animate-css';
+@import './fullcalendar.css';
 
 @source '../views';
 @source '../../vendor/laravel/framework/src/Illuminate/Pagination/resources/views/*.blade.php';

@@ -1,0 +1,73 @@
+import dayjs from 'dayjs';
+import { Button } from '@heroui/react';
+
+import type { AvailabilitySlot } from '@/lib/types';
+import { formatTime } from '@/lib/date';
+
+type SlotsGridProps = {
+    days: Date[];
+    slots: AvailabilitySlot[];
+    selectedSlotStart?: string | null;
+    onSelect: (slot: AvailabilitySlot) => void;
+};
+
+export const SlotsGrid = ({ days, slots, selectedSlotStart, onSelect }: SlotsGridProps) => {
+    const slotsByDay = new Map<string, AvailabilitySlot[]>();
+
+    slots.forEach((slot) => {
+        const key = dayjs(slot.startAt).format('YYYY-MM-DD');
+        const list = slotsByDay.get(key) ?? [];
+        list.push(slot);
+        slotsByDay.set(key, list);
+    });
+
+    days.forEach((day) => {
+        const key = dayjs(day).format('YYYY-MM-DD');
+        const list = slotsByDay.get(key);
+        if (list) {
+            list.sort((a, b) => dayjs(a.startAt).valueOf() - dayjs(b.startAt).valueOf());
+        }
+    });
+
+    const dayLabels = ['Lun', 'Mar', 'Mer', 'Jeu', 'Ven', 'Sam', 'Dim'];
+
+    return (
+        <div className="grid gap-4 lg:grid-cols-7">
+            {days.map((day) => {
+                const key = dayjs(day).format('YYYY-MM-DD');
+                const list = slotsByDay.get(key) || [];
+                const dayIndex = (dayjs(day).day() + 6) % 7;
+                return (
+                    <div key={key} className="space-y-2">
+                        <div className="text-center">
+                            <p className="text-xs text-neutral-400">{dayLabels[dayIndex]}</p>
+                            <p className="text-sm font-semibold text-white">{dayjs(day).date()}</p>
+                        </div>
+                        <div className="space-y-2">
+                            {list.length === 0 ? (
+                                <p className="text-center text-xs text-neutral-600">-</p>
+                            ) : (
+                                list.map((slot) => {
+                                    const isSelected = selectedSlotStart === slot.startAt;
+                                    return (
+                                        <Button
+                                            key={slot.startAt}
+                                            radius="full"
+                                            size="sm"
+                                            variant={isSelected ? 'solid' : 'bordered'}
+                                            color={isSelected ? 'primary' : 'default'}
+                                            className="w-full justify-center"
+                                            onPress={() => onSelect(slot)}
+                                        >
+                                            {formatTime(slot.startAt)}
+                                        </Button>
+                                    );
+                                })
+                            )}
+                        </div>
+                    </div>
+                );
+            })}
+        </div>
+    );
+};

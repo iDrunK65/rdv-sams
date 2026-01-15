@@ -7,6 +7,7 @@ use App\Http\Requests\AppointmentTypes\StoreAppointmentTypeRequest;
 use App\Http\Requests\AppointmentTypes\UpdateAppointmentTypeRequest;
 use App\Models\AppointmentType;
 use App\Models\Calendar;
+use App\Models\BookingToken;
 use App\Models\User;
 use Illuminate\Http\JsonResponse;
 use Illuminate\Http\Request;
@@ -45,6 +46,48 @@ class AppointmentTypeController extends Controller
         if (! $this->isAdmin($user)) {
             $query->where('doctorId', new ObjectId($user->getKey()));
         }
+
+        return response()->json([
+            'message' => 'Appointment types loaded',
+            'data' => $query->get(),
+        ]);
+    }
+
+    public function patientIndex(Request $request, string $calendarId): JsonResponse
+    {
+        /** @var BookingToken|null $bookingToken */
+        $bookingToken = $request->attributes->get('bookingToken');
+        if (! $bookingToken) {
+            return response()->json(['message' => 'Patient token required'], 401);
+        }
+
+        $calendar = Calendar::query()->where('_id', new ObjectId($calendarId))->first();
+        if (! $calendar) {
+            return response()->json(['message' => 'Calendar not found'], 404);
+        }
+
+        if ($calendar->scope === 'sams') {
+            return response()->json(['message' => 'Forbidden'], 403);
+        }
+
+        $doctorId = $bookingToken->doctorId ? (string) $bookingToken->doctorId : null;
+        if ($calendar->doctorId && $doctorId && (string) $calendar->doctorId !== $doctorId) {
+            return response()->json(['message' => 'Forbidden'], 403);
+        }
+
+        if ($bookingToken->calendarId && (string) $bookingToken->calendarId !== $calendarId) {
+            return response()->json(['message' => 'Forbidden'], 403);
+        }
+
+        if ($bookingToken->specialtyId && $calendar->specialtyId) {
+            if ((string) $calendar->specialtyId !== (string) $bookingToken->specialtyId) {
+                return response()->json(['message' => 'Forbidden'], 403);
+            }
+        }
+
+        $query = AppointmentType::query()
+            ->where('calendarId', new ObjectId($calendarId))
+            ->where('isActive', true);
 
         return response()->json([
             'message' => 'Appointment types loaded',

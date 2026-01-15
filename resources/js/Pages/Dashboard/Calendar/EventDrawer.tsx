@@ -37,7 +37,7 @@ export const EventDrawer = ({ isOpen, appointment, onClose, onTransfer, onCancel
             <DrawerContent>
                 <DrawerHeader className="flex items-center justify-between">
                     <div>
-                        <p className="text-sm text-foreground/70">Rendez-vous</p>
+                        <p className="text-sm text-neutral-400">Rendez-vous</p>
                         <h3 className="text-lg font-semibold">{appointment.patient?.lastname ?? 'Patient'}</h3>
                     </div>
                     <StatusPill value={appointment.status} />
@@ -45,18 +45,18 @@ export const EventDrawer = ({ isOpen, appointment, onClose, onTransfer, onCancel
                 <Divider className="opacity-40" />
                 <DrawerBody className="space-y-4">
                     <div>
-                        <p className="text-xs uppercase text-foreground/60">Creneau</p>
+                        <p className="text-xs uppercase text-neutral-500">Creneau</p>
                         <p className="text-sm">{formatDateTime(appointment.startAt)}</p>
-                        <p className="text-sm text-foreground/70">{formatDateTime(appointment.endAt)}</p>
+                        <p className="text-sm text-neutral-400">{formatDateTime(appointment.endAt)}</p>
                     </div>
                     <div>
-                        <p className="text-xs uppercase text-foreground/60">Patient</p>
+                        <p className="text-xs uppercase text-neutral-500">Patient</p>
                         <p className="text-sm">
                             {appointment.patient?.firstname} {appointment.patient?.lastname}
                         </p>
-                        <p className="text-sm text-foreground/70">{appointment.patient?.phone}</p>
+                        <p className="text-sm text-neutral-400">{appointment.patient?.phone}</p>
                         {appointment.patient?.company ? (
-                            <p className="text-sm text-foreground/70">{appointment.patient.company}</p>
+                            <p className="text-sm text-neutral-400">{appointment.patient.company}</p>
                         ) : null}
                     </div>
                 </DrawerBody>

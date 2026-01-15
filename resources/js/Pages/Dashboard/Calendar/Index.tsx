@@ -8,8 +8,10 @@ import listPlugin from '@fullcalendar/list';
 import interactionPlugin from '@fullcalendar/interaction';
 import type { DatesSetArg, EventClickArg, EventInput } from '@fullcalendar/core';
 
+import { CalendarCard } from '@/Components/dashboard/CalendarCard';
+import { AppointmentDetailsDrawer } from '@/Components/dashboard/AppointmentDetailsDrawer';
 import { GenerateTokenModal } from '@/Components/dashboard/GenerateTokenModal';
-import { TransferModal } from '@/Components/dashboard/TransferModal';
+import { TransferAppointmentModal } from '@/Components/dashboard/TransferAppointmentModal';
 import { ConfirmDialog } from '@/Components/ui/ConfirmDialog';
 import { PageHeader } from '@/Components/ui/PageHeader';
 import { DashboardLayout } from '@/Layouts/DashboardLayout';
@@ -17,7 +19,6 @@ import { useIsAdmin } from '@/hooks/useAuth';
 import { api } from '@/lib/api';
 import { toIsoUtc } from '@/lib/date';
 import type { ApiResponse, Appointment, Calendar, Doctor, SamsEvent } from '@/lib/types';
-import { EventDrawer } from './EventDrawer';
 
 const viewOptions = [
     { key: 'dayGridMonth', label: 'Mois' },
@@ -295,31 +296,7 @@ const CalendarIndex = () => {
                         <div className="grid gap-4 md:grid-cols-2">
                             {calendarCards.map((calendar) => {
                                 const id = calendar._id || calendar.id || '';
-                                return (
-                                    <Card key={id} className="border border-white/10 bg-white/5">
-                                        <CardBody className="space-y-3">
-                                            <div className="flex items-start justify-between gap-3">
-                                                <div>
-                                                    <p className="text-xs uppercase text-foreground/60">
-                                                        {calendar.scope === 'doctor' ? 'Visite medicale' : 'Specialite'}
-                                                    </p>
-                                                    <h3 className="text-lg font-semibold">
-                                                        {calendar.label || 'Calendrier'}
-                                                    </h3>
-                                                </div>
-                                                {calendar.color ? (
-                                                    <span
-                                                        className="h-3 w-3 rounded-full"
-                                                        style={{ backgroundColor: calendar.color }}
-                                                    />
-                                                ) : null}
-                                            </div>
-                                            <Button as={Link} href={`/dashboard/config/${id}`} variant="flat" size="sm">
-                                                Configurer
-                                            </Button>
-                                        </CardBody>
-                                    </Card>
-                                );
+                                return <CalendarCard key={id} calendar={calendar} href={`/dashboard/config/${id}`} />;
                             })}
                         </div>
                     )}
@@ -328,7 +305,7 @@ const CalendarIndex = () => {
                 <div className="calendar-shell p-4">
                     <div className="flex flex-col gap-4 lg:flex-row lg:items-center lg:justify-between">
                         <div className="space-y-1">
-                            <p className="text-sm text-foreground/60">{viewTitle || 'Calendrier'}</p>
+                            <p className="text-sm text-neutral-400">{viewTitle || 'Calendrier'}</p>
                             <div className="flex flex-wrap items-center gap-2">
                                 <Button size="sm" variant="flat" onPress={() => handleNavigate('today')}>
                                     Aujourd hui
@@ -376,7 +353,7 @@ const CalendarIndex = () => {
                             </div>
                         </div>
                     </div>
-                    <Card className="mt-4 border border-white/10 bg-black/30">
+                    <Card className="mt-4 border border-neutral-800 bg-neutral-900/60">
                         <CardBody className="relative">
                             {appointmentsLoading ? (
                                 <div className="absolute inset-0 z-10 flex items-center justify-center bg-black/40">
@@ -409,7 +386,7 @@ const CalendarIndex = () => {
                 onClose={() => setTokenModalOpen(false)}
             />
 
-            <EventDrawer
+            <AppointmentDetailsDrawer
                 isOpen={drawerOpen}
                 appointment={selectedAppointment}
                 onClose={() => {
@@ -420,7 +397,7 @@ const CalendarIndex = () => {
                 onCancel={() => setCancelOpen(true)}
             />
 
-            <TransferModal
+            <TransferAppointmentModal
                 isOpen={transferOpen}
                 appointmentId={selectedAppointment?._id || selectedAppointment?.id || null}
                 doctors={doctors}

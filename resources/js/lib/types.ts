@@ -21,6 +21,7 @@ export type User = {
 };
 
 export type Doctor = User;
+export type DoctorPublic = Pick<User, 'id' | '_id' | 'identifier' | 'name'>;
 
 export type CalendarScope = 'doctor' | 'specialty' | 'sams';
 
@@ -48,6 +49,15 @@ export type AppointmentType = {
     bufferBeforeMinutes?: number;
     bufferAfterMinutes?: number;
     isActive: boolean;
+};
+
+export type Specialty = {
+    id?: string;
+    _id?: string;
+    code?: string | null;
+    label: string;
+    color?: string | null;
+    isActive?: boolean;
 };
 
 export type AvailabilityRule = {
@@ -135,6 +145,8 @@ export type AvailabilitySlot = {
     endAt: string;
 };
 
+export type Slot = AvailabilitySlot;
+
 export type PageProps = {
     name: string;
     auth: {
@@ -143,3 +155,5 @@ export type PageProps = {
     sidebarOpen?: boolean;
     [key: string]: unknown;
 };
+
+export type AuthUser = User;
