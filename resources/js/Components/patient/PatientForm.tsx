@@ -8,7 +8,7 @@ type PatientFormProps = {
 };
 
 const formatPhone = (input: string): string => {
-    const digits = input.replace(/\D/g, '').slice(0, 9);
+    const digits = input.replace(/\D/g, '').slice(0, 10);
     if (digits.length === 0) return '';
     if (digits.length <= 3) return `(${digits}`;
     if (digits.length <= 6) return `(${digits.slice(0, 3)}) ${digits.slice(3)}`;
@@ -34,7 +34,7 @@ export const PatientForm = ({ value, onChange }: PatientFormProps) => {
                 label="Telephone"
                 value={value.phone}
                 onValueChange={(phone) => onChange({ ...value, phone: formatPhone(phone) })}
-                placeholder="(000) 000-000"
+                placeholder="(000) 000-0000"
                 isRequired
             />
             <Input

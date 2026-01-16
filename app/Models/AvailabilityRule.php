@@ -22,7 +22,6 @@ class AvailabilityRule extends Model
         'dayOfWeek',
         'startTime',
         'endTime',
-        'slotMinutes',
         'validFrom',
         'validTo',
         'timezone',
@@ -38,7 +37,6 @@ class AvailabilityRule extends Model
             'doctorId' => ObjectId::class,
             'calendarId' => ObjectId::class,
             'dayOfWeek' => 'integer',
-            'slotMinutes' => 'integer',
             'validFrom' => 'date',
             'validTo' => 'date',
         ];

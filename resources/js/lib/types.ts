@@ -68,7 +68,6 @@ export type AvailabilityRule = {
     dayOfWeek: number;
     startTime: string;
     endTime: string;
-    slotMinutes: number;
     validFrom?: string | null;
     validTo?: string | null;
     timezone?: string | null;

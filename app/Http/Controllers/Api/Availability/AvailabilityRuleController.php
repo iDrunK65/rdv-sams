@@ -81,7 +81,6 @@ class AvailabilityRuleController extends Controller
             'dayOfWeek' => $data['dayOfWeek'],
             'startTime' => $data['startTime'],
             'endTime' => $data['endTime'],
-            'slotMinutes' => $data['slotMinutes'],
             'validFrom' => $data['validFrom'] ?? null,
             'validTo' => $data['validTo'] ?? null,
             'timezone' => config('app.timezone', 'Europe/Paris'),

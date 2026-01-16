@@ -16,9 +16,7 @@ export const Sidebar = ({ items, activePath, footer }: SidebarProps) => {
     return (
         <aside className="hidden w-64 flex-col border-r border-neutral-800 bg-neutral-950 px-6 py-6 lg:flex">
             <Link href="/dashboard" className="flex items-center gap-2 text-white">
-                <span className="grid h-9 w-9 place-items-center rounded-full bg-neutral-800 text-sm font-semibold">
-                    S
-                </span>
+                <img src="/Logo_SAMS.png" alt="SAMS" className="h-9 w-9 place-items-center rounded-full" />
                 <span className="text-lg font-semibold">SAMS</span>
             </Link>
             <div className="my-6 h-px w-full bg-neutral-800" />

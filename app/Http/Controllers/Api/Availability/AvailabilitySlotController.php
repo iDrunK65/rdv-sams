@@ -74,27 +74,42 @@ class AvailabilitySlotController extends Controller
             ->values()
             ->all();
 
+        $selectedAppointmentType = null;
+        if (! empty($data['appointmentTypeId'])) {
+            $selectedAppointmentType = AppointmentType::query()
+                ->where('_id', new ObjectId($data['appointmentTypeId']))
+                ->first();
+
+            if (! $selectedAppointmentType) {
+                return response()->json(['message' => 'Appointment type not found'], 404);
+            }
+
+            if (! $selectedAppointmentType->isActive) {
+                return response()->json([
+                    'message' => 'Appointment type inactive',
+                    'errors' => ['appointmentTypeId' => ['Appointment type is inactive']],
+                ], 422);
+            }
+        }
+
         $appointmentTypes = AppointmentType::query()
             ->whereIn('calendarId', $this->parseIds($calendarIdList))
             ->where('isActive', true)
+            ->orderBy('created_at')
             ->get();
 
         $appointmentTypeByCalendar = [];
         foreach ($appointmentTypes as $type) {
             $calendarId = (string) $type->calendarId;
-            $length = (int) $type->durationMinutes
-                + (int) ($type->bufferBeforeMinutes ?? 0)
-                + (int) ($type->bufferAfterMinutes ?? 0);
-
-            if ($length <= 0) {
-                continue;
+            if (! isset($appointmentTypeByCalendar[$calendarId])) {
+                $appointmentTypeByCalendar[$calendarId] = $type;
             }
+        }
 
-            if (! isset($appointmentTypeByCalendar[$calendarId]) || $length < $appointmentTypeByCalendar[$calendarId]['length']) {
-                $appointmentTypeByCalendar[$calendarId] = [
-                    'type' => $type,
-                    'length' => $length,
-                ];
+        if ($selectedAppointmentType) {
+            $selectedCalendarId = (string) $selectedAppointmentType->calendarId;
+            if (in_array($selectedCalendarId, $calendarIdList, true)) {
+                $appointmentTypeByCalendar[$selectedCalendarId] = $selectedAppointmentType;
             }
         }
 
@@ -106,17 +121,17 @@ class AvailabilitySlotController extends Controller
                 continue;
             }
 
-            $typeInfo = $appointmentTypeByCalendar[$calendarId] ?? null;
-            if (! $typeInfo) {
+            $appointmentType = $appointmentTypeByCalendar[$calendarId] ?? null;
+            if (! $appointmentType) {
                 continue;
             }
 
-            $calendarSlots = $this->availabilityService->getSlots(
+            $calendarSlots = $this->availabilityService->getSlotBlocks(
                 $doctorId,
                 $calendarId,
                 $from,
                 $to,
-                $typeInfo['type']
+                $appointmentType
             );
 
             foreach ($calendarSlots as $slot) {

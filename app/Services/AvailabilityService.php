@@ -28,10 +28,12 @@ class AvailabilityService
         $fromLocal = $from->copy()->setTimezone($timezone);
         $toLocal = $to->copy()->setTimezone($timezone);
 
-        $slotLength = $this->slotLengthMinutes($appointmentType);
-        if ($slotLength <= 0) {
+        $durationMinutes = $this->durationMinutes($appointmentType);
+        if ($durationMinutes <= 0) {
             return [];
         }
+        $bufferBeforeMinutes = $this->bufferBeforeMinutes($appointmentType);
+        $bufferAfterMinutes = $this->bufferAfterMinutes($appointmentType);
 
         $rules = AvailabilityRule::query()
             ->where('doctorId', new ObjectId($doctorId))
@@ -76,32 +78,39 @@ class AvailabilityService
                     $timezone
                 );
 
-                $stepMinutes = (int) $rule->slotMinutes;
-                if ($stepMinutes <= 0) {
-                    continue;
-                }
-
-                $slotStart = $windowStart->copy();
-                while ($slotStart->copy()->addMinutes($slotLength)->lte($windowEnd)) {
-                    $slotEnd = $slotStart->copy()->addMinutes($slotLength);
-
-                    if ($slotStart->lt($fromLocal) || $slotEnd->gt($toLocal)) {
-                        $slotStart->addMinutes($stepMinutes);
-                        continue;
-                    }
-
-                    $slots[] = [
-                        'startAt' => $slotStart->copy(),
-                        'endAt' => $slotEnd->copy(),
-                    ];
-
-                    $slotStart->addMinutes($stepMinutes);
-                }
+                $slots = array_merge(
+                    $slots,
+                    $this->buildSlotsForWindow(
+                        $windowStart,
+                        $windowEnd,
+                        $fromLocal,
+                        $toLocal,
+                        $durationMinutes,
+                        $bufferBeforeMinutes,
+                        $bufferAfterMinutes
+                    )
+                );
             }
         }
 
-        $slots = $this->applyExceptions($slots, $exceptions, $slotLength);
-        $slots = $this->removeOverlapsWithAppointments($slots, $doctorId, $fromLocal, $toLocal, $ignoreAppointmentId);
+        $slots = $this->applyExceptions(
+            $slots,
+            $exceptions,
+            $fromLocal,
+            $toLocal,
+            $durationMinutes,
+            $bufferBeforeMinutes,
+            $bufferAfterMinutes
+        );
+        $slots = $this->removeOverlapsWithAppointments(
+            $slots,
+            $doctorId,
+            $fromLocal,
+            $toLocal,
+            $bufferBeforeMinutes,
+            $bufferAfterMinutes,
+            $ignoreAppointmentId
+        );
 
         return $this->dedupeAndSort($slots);
     }
@@ -120,6 +129,22 @@ class AvailabilityService
         );
     }
 
+    /**
+     * @return array<int, array{startAt: string, endAt: string}>
+     */
+    public function getSlotBlocks(string $doctorId, string $calendarId, Carbon $from, Carbon $to, AppointmentType $appointmentType): array
+    {
+        return array_map(
+            fn (array $slot) => [
+                'startAt' => $slot['startAt']->toIso8601String(),
+                'endAt' => $slot['endAt']->toIso8601String(),
+            ],
+            $this->mergeContiguousSlots(
+                $this->buildSlots($doctorId, $calendarId, $from, $to, $appointmentType)
+            )
+        );
+    }
+
     public function isSlotAvailable(
         string $doctorId,
         string $calendarId,
@@ -128,12 +153,12 @@ class AvailabilityService
         ?string $ignoreAppointmentId = null
     ): bool
     {
-        $slotLength = $this->slotLengthMinutes($appointmentType);
-        if ($slotLength <= 0) {
+        $durationMinutes = $this->durationMinutes($appointmentType);
+        if ($durationMinutes <= 0) {
             return false;
         }
 
-        $endAt = $startAt->copy()->addMinutes($slotLength);
+        $endAt = $startAt->copy()->addMinutes($durationMinutes);
         $slots = $this->buildSlots($doctorId, $calendarId, $startAt, $endAt, $appointmentType, $ignoreAppointmentId);
         $timezone = config('app.timezone', 'Europe/Paris');
         $startAtLocal = $startAt->copy()->setTimezone($timezone);
@@ -148,18 +173,34 @@ class AvailabilityService
         return false;
     }
 
-    private function slotLengthMinutes(AppointmentType $appointmentType): int
+    private function durationMinutes(AppointmentType $appointmentType): int
     {
-        return (int) $appointmentType->durationMinutes
-            + (int) ($appointmentType->bufferBeforeMinutes ?? 0)
-            + (int) ($appointmentType->bufferAfterMinutes ?? 0);
+        return max((int) $appointmentType->durationMinutes, 0);
+    }
+
+    private function bufferBeforeMinutes(AppointmentType $appointmentType): int
+    {
+        return max((int) ($appointmentType->bufferBeforeMinutes ?? 0), 0);
+    }
+
+    private function bufferAfterMinutes(AppointmentType $appointmentType): int
+    {
+        return max((int) ($appointmentType->bufferAfterMinutes ?? 0), 0);
     }
 
     /**
      * @param array<int, array{startAt: Carbon, endAt: Carbon}> $slots
      * @return array<int, array{startAt: Carbon, endAt: Carbon}>
      */
-    private function applyExceptions(array $slots, $exceptions, int $slotLength): array
+    private function applyExceptions(
+        array $slots,
+        $exceptions,
+        Carbon $fromLocal,
+        Carbon $toLocal,
+        int $durationMinutes,
+        int $bufferBeforeMinutes,
+        int $bufferAfterMinutes
+    ): array
     {
         $timezone = config('app.timezone', 'Europe/Paris');
 
@@ -180,20 +221,35 @@ class AvailabilityService
             );
 
             if ($exception->kind === 'add') {
-                $slotStart = $start->copy();
-                while ($slotStart->copy()->addMinutes($slotLength)->lte($end)) {
-                    $slotEnd = $slotStart->copy()->addMinutes($slotLength);
-                    $slots[] = [
-                        'startAt' => $slotStart->copy(),
-                        'endAt' => $slotEnd->copy(),
-                    ];
-                    $slotStart->addMinutes($slotLength);
-                }
+                $slots = array_merge(
+                    $slots,
+                    $this->buildSlotsForWindow(
+                        $start,
+                        $end,
+                        $fromLocal,
+                        $toLocal,
+                        $durationMinutes,
+                        $bufferBeforeMinutes,
+                        $bufferAfterMinutes
+                    )
+                );
                 continue;
             }
 
-            $slots = array_values(array_filter($slots, function (array $slot) use ($start, $end) {
-                return ! ($slot['startAt']->lt($end) && $slot['endAt']->gt($start));
+            $slots = array_values(array_filter($slots, function (array $slot) use (
+                $start,
+                $end,
+                $bufferBeforeMinutes,
+                $bufferAfterMinutes
+            ) {
+                [$bufferedStart, $bufferedEnd] = $this->bufferedRange(
+                    $slot['startAt'],
+                    $slot['endAt'],
+                    $bufferBeforeMinutes,
+                    $bufferAfterMinutes
+                );
+
+                return ! ($bufferedStart->lt($end) && $bufferedEnd->gt($start));
             }));
         }
 
@@ -209,13 +265,18 @@ class AvailabilityService
         string $doctorId,
         Carbon $from,
         Carbon $to,
+        int $bufferBeforeMinutes,
+        int $bufferAfterMinutes,
         ?string $ignoreAppointmentId = null
     ): array
     {
+        $queryFrom = $from->copy()->subMinutes($bufferBeforeMinutes);
+        $queryTo = $to->copy()->addMinutes($bufferAfterMinutes);
+
         $appointmentsQuery = Appointment::query()
             ->where('doctorId', new ObjectId($doctorId))
-            ->where('startAt', '<', $to)
-            ->where('endAt', '>', $from)
+            ->where('startAt', '<', $queryTo)
+            ->where('endAt', '>', $queryFrom)
             ->whereNotIn('status', ['cancelled', 'canceled']);
 
         if ($ignoreAppointmentId) {
@@ -224,9 +285,19 @@ class AvailabilityService
 
         $appointments = $appointmentsQuery->get();
 
-        return array_values(array_filter($slots, function (array $slot) use ($appointments) {
+        return array_values(array_filter($slots, function (array $slot) use (
+            $appointments,
+            $bufferBeforeMinutes,
+            $bufferAfterMinutes
+        ) {
+            [$bufferedStart, $bufferedEnd] = $this->bufferedRange(
+                $slot['startAt'],
+                $slot['endAt'],
+                $bufferBeforeMinutes,
+                $bufferAfterMinutes
+            );
             foreach ($appointments as $appointment) {
-                if ($appointment->startAt < $slot['endAt'] && $appointment->endAt > $slot['startAt']) {
+                if ($appointment->startAt < $bufferedEnd && $appointment->endAt > $bufferedStart) {
                     return false;
                 }
             }
@@ -255,5 +326,103 @@ class AvailabilityService
         });
 
         return $slots;
+    }
+
+    /**
+     * @return array<int, array{startAt: Carbon, endAt: Carbon}>
+     */
+    private function buildSlotsForWindow(
+        Carbon $windowStart,
+        Carbon $windowEnd,
+        Carbon $fromLocal,
+        Carbon $toLocal,
+        int $durationMinutes,
+        int $bufferBeforeMinutes,
+        int $bufferAfterMinutes
+    ): array
+    {
+        if ($durationMinutes <= 0) {
+            return [];
+        }
+
+        $slots = [];
+        $slotStart = $windowStart->copy();
+
+        while ($slotStart->copy()->addMinutes($durationMinutes)->lte($windowEnd)) {
+            $slotEnd = $slotStart->copy()->addMinutes($durationMinutes);
+            [$bufferedStart, $bufferedEnd] = $this->bufferedRange(
+                $slotStart,
+                $slotEnd,
+                $bufferBeforeMinutes,
+                $bufferAfterMinutes
+            );
+
+            if ($bufferedStart->lt($windowStart) || $bufferedEnd->gt($windowEnd)) {
+                $slotStart->addMinutes($durationMinutes);
+                continue;
+            }
+
+            if ($slotStart->lt($fromLocal) || $slotEnd->gt($toLocal)) {
+                $slotStart->addMinutes($durationMinutes);
+                continue;
+            }
+
+            $slots[] = [
+                'startAt' => $slotStart->copy(),
+                'endAt' => $slotEnd->copy(),
+            ];
+
+            $slotStart->addMinutes($durationMinutes);
+        }
+
+        return $slots;
+    }
+
+    /**
+     * @return array{Carbon, Carbon}
+     */
+    private function bufferedRange(
+        Carbon $slotStart,
+        Carbon $slotEnd,
+        int $bufferBeforeMinutes,
+        int $bufferAfterMinutes
+    ): array
+    {
+        $bufferedStart = $slotStart->copy()->subMinutes($bufferBeforeMinutes);
+        $bufferedEnd = $slotEnd->copy()->addMinutes($bufferAfterMinutes);
+
+        return [$bufferedStart, $bufferedEnd];
+    }
+
+    /**
+     * @param array<int, array{startAt: Carbon, endAt: Carbon}> $slots
+     * @return array<int, array{startAt: Carbon, endAt: Carbon}>
+     */
+    private function mergeContiguousSlots(array $slots): array
+    {
+        $slots = $this->dedupeAndSort($slots);
+
+        $merged = [];
+
+        foreach ($slots as $slot) {
+            if (count($merged) === 0) {
+                $merged[] = $slot;
+                continue;
+            }
+
+            $lastIndex = count($merged) - 1;
+            $last = $merged[$lastIndex];
+
+            if ($slot['startAt']->lte($last['endAt'])) {
+                if ($slot['endAt']->gt($last['endAt'])) {
+                    $merged[$lastIndex]['endAt'] = $slot['endAt'];
+                }
+                continue;
+            }
+
+            $merged[] = $slot;
+        }
+
+        return $merged;
     }
 }

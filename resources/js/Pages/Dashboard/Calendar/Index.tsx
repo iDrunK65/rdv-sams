@@ -21,7 +21,7 @@ import { DashboardLayout } from '@/Layouts/DashboardLayout';
 import { useIsAdmin } from '@/hooks/useAuth';
 import { api, getAvailabilityFeed } from '@/lib/api';
 import { formatDateTimeFR, PARIS_TZ, toIsoParis } from '@/lib/date';
-import type { ApiResponse, Appointment, AvailabilitySlot, Calendar, Doctor, SamsEvent } from '@/lib/types';
+import type { ApiResponse, Appointment, AppointmentType, AvailabilitySlot, Calendar, Doctor, SamsEvent } from '@/lib/types';
 
 const viewOptions = [
     { key: 'dayGridMonth', label: 'Mois' },
@@ -70,6 +70,9 @@ const CalendarIndex = () => {
     const [samsEvents, setSamsEvents] = useState<SamsEvent[]>([]);
     const [doctors, setDoctors] = useState<Doctor[]>([]);
     const [calendarIds, setCalendarIds] = useState<string[]>([]);
+    const [appointmentTypes, setAppointmentTypes] = useState<AppointmentType[]>([]);
+    const [appointmentTypeId, setAppointmentTypeId] = useState('');
+    const [appointmentTypesLoading, setAppointmentTypesLoading] = useState(false);
     const [loading, setLoading] = useState(true);
     const [appointmentsLoading, setAppointmentsLoading] = useState(false);
     const [viewTitle, setViewTitle] = useState('');
@@ -86,6 +89,8 @@ const CalendarIndex = () => {
     const [transferOpen, setTransferOpen] = useState(false);
     const [cancelOpen, setCancelOpen] = useState(false);
     const [cancelLoading, setCancelLoading] = useState(false);
+
+    const selectedCalendarId = calendarIds.length === 1 ? calendarIds[0] : null;
 
     const loadCalendars = useCallback(async () => {
         const response = await api.get<ApiResponse<Calendar[]>>('/api/calendars');
@@ -120,19 +125,42 @@ const CalendarIndex = () => {
                 setAvailabilitySlots([]);
                 return;
             }
-            const response = await getAvailabilityFeed({
+            const params: Record<string, string | string[]> = {
                 from: toIsoParis(range.start),
                 to: toIsoParis(range.end),
                 calendarIds,
-            });
+            };
+            if (appointmentTypeId && calendarIds.length === 1) {
+                params.appointmentTypeId = appointmentTypeId;
+            }
+            const response = await getAvailabilityFeed(params);
             setAvailabilitySlots((response.data as ApiResponse<AvailabilitySlot[]>).data);
         },
-        [calendarIds],
+        [calendarIds, appointmentTypeId],
     );
 
     const loadDoctors = useCallback(async () => {
         const response = await api.get<ApiResponse<Doctor[]>>('/api/doctors');
         setDoctors(response.data.data);
+    }, []);
+
+    const loadAppointmentTypes = useCallback(async (calendarId: string) => {
+        setAppointmentTypesLoading(true);
+        try {
+            const response = await api.get<ApiResponse<AppointmentType[]>>(
+                `/api/calendars/${calendarId}/appointment-types`,
+            );
+            const active = response.data.data.filter((type) => type.isActive);
+            setAppointmentTypes(active);
+            setAppointmentTypeId((current) => {
+                if (current && active.some((type) => (type._id || type.id || '') === current)) {
+                    return current;
+                }
+                return active[0]?._id || active[0]?.id || '';
+            });
+        } finally {
+            setAppointmentTypesLoading(false);
+        }
     }, []);
 
     const loadSamsEvents = useCallback(async (range?: ViewRange | null) => {
@@ -169,6 +197,16 @@ const CalendarIndex = () => {
                 .filter((id): id is string => Boolean(id));
         });
     }, [calendars]);
+
+    useEffect(() => {
+        if (!selectedCalendarId) {
+            setAppointmentTypes([]);
+            setAppointmentTypeId('');
+            setAppointmentTypesLoading(false);
+            return;
+        }
+        loadAppointmentTypes(selectedCalendarId);
+    }, [selectedCalendarId, loadAppointmentTypes]);
 
     useEffect(() => {
         const range = viewRangeRef.current;
@@ -459,6 +497,30 @@ const CalendarIndex = () => {
                                         <SelectItem key={id}>
                                             {calendar.label ||
                                                 (calendar.scope === 'doctor' ? 'Visite medicale' : 'Specialite')}
+                                        </SelectItem>
+                                    );
+                                })}
+                            </Select>
+                            <Select
+                                label="Type de rendez-vous"
+                                selectedKeys={appointmentTypeId ? new Set([appointmentTypeId]) : new Set()}
+                                onSelectionChange={(keys) => {
+                                    if (keys === 'all') {
+                                        const first = appointmentTypes[0];
+                                        setAppointmentTypeId(first?._id || first?.id || '');
+                                        return;
+                                    }
+                                    const first = Array.from(keys)[0];
+                                    setAppointmentTypeId(first ? String(first) : '');
+                                }}
+                                className="min-w-[220px]"
+                                isDisabled={!selectedCalendarId || appointmentTypesLoading || appointmentTypes.length === 0}
+                            >
+                                {appointmentTypes.map((type) => {
+                                    const id = type._id || type.id || '';
+                                    return (
+                                        <SelectItem key={id}>
+                                            {type.label}
                                         </SelectItem>
                                     );
                                 })}

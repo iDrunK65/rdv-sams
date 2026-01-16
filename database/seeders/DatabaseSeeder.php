@@ -175,19 +175,19 @@ class DatabaseSeeder extends Seeder
             ]
         );
 
-        $workdays = [1, 2, 3, 4, 5, 6, 7];
+        $workdays = [0, 1, 2, 3, 4, 5, 6];
         $this->seedAvailabilityRules($doctor, $doctorCalendar, $workdays, [
-            ['start' => '09:00', 'end' => '12:00', 'slotMinutes' => 15],
-            ['start' => '14:00', 'end' => '18:00', 'slotMinutes' => 15],
+            ['start' => '09:00', 'end' => '12:00'],
+            ['start' => '14:00', 'end' => '18:00'],
         ], $timezone);
 
         $this->seedAvailabilityRules($doctor, $gynCalendar, $workdays, [
-            ['start' => '09:30', 'end' => '12:30', 'slotMinutes' => 30],
-            ['start' => '14:00', 'end' => '17:30', 'slotMinutes' => 30],
+            ['start' => '09:30', 'end' => '12:30'],
+            ['start' => '14:00', 'end' => '17:30'],
         ], $timezone);
 
         $this->seedAvailabilityRules($doctor, $legalCalendar, $workdays, [
-            ['start' => '13:00', 'end' => '17:00', 'slotMinutes' => 30],
+            ['start' => '13:00', 'end' => '17:00'],
         ], $timezone);
 
         $tomorrow = Carbon::now($timezone)->addDay()->startOfDay();
@@ -351,7 +351,6 @@ class DatabaseSeeder extends Seeder
                         'endTime' => $window['end'],
                     ],
                     [
-                        'slotMinutes' => $window['slotMinutes'],
                         'validFrom' => null,
                         'validTo' => null,
                         'timezone' => $timezone,

@@ -26,6 +26,7 @@ class GetAvailabilityFeedRequest extends FormRequest
         return [
             'from' => ['required', 'date'],
             'to' => ['required', 'date', 'after_or_equal:from'],
+            'appointmentTypeId' => ['sometimes', 'string', 'regex:/^[a-f0-9]{24}$/i'],
             'doctorId' => ['nullable', 'string', 'regex:/^[a-f0-9]{24}$/i'],
             'doctorIds' => ['sometimes', 'array'],
             'doctorIds.*' => ['string', 'regex:/^[a-f0-9]{24}$/i'],

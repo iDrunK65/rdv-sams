@@ -100,6 +100,7 @@ export const appointmentApi = {
 export const getAvailabilityFeed = (params: {
     from: string;
     to: string;
+    appointmentTypeId?: string;
     doctorId?: string;
     doctorIds?: string[];
     calendarIds?: string[];

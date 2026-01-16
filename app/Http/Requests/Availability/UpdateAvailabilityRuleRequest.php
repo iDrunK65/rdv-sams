@@ -16,7 +16,6 @@ class UpdateAvailabilityRuleRequest extends FormRequest
             'dayOfWeek' => ['sometimes', 'integer', 'between:0,6'],
             'startTime' => ['sometimes', 'date_format:H:i'],
             'endTime' => ['sometimes', 'date_format:H:i'],
-            'slotMinutes' => ['sometimes', 'integer', 'min:1'],
             'validFrom' => ['sometimes', 'nullable', 'date'],
             'validTo' => ['sometimes', 'nullable', 'date', 'after_or_equal:validFrom'],
             'timezone' => ['sometimes', 'nullable', 'string'],

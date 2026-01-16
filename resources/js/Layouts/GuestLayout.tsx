@@ -13,9 +13,7 @@ export const GuestLayout = ({ children, headerAction }: GuestLayoutProps) => {
             <header className="border-b border-white/10 bg-black/40 backdrop-blur">
                 <div className="mx-auto flex max-w-6xl items-center justify-between px-6 py-4">
                     <Link href="/" className="flex items-center gap-2 text-white">
-                        <span className="grid h-9 w-9 place-items-center rounded-full bg-white/10 text-sm font-semibold">
-                            S
-                        </span>
+                        <img src="/Logo_SAMS.png" alt="SAMS" className="h-9 w-9 place-items-center rounded-full" />
                         <span className="text-lg font-semibold">SAMS</span>
                     </Link>
                     {headerAction ? <div className="text-sm text-foreground/70">{headerAction}</div> : null}

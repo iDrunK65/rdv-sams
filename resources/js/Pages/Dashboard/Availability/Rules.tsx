@@ -36,7 +36,6 @@ const Rules = ({ calendarId }: RulesProps) => {
         dayOfWeek: '1',
         startTime: '09:00',
         endTime: '17:00',
-        slotMinutes: '30',
         validFrom: '',
         validTo: '',
         timezone: PARIS_TZ,
@@ -65,7 +64,6 @@ const Rules = ({ calendarId }: RulesProps) => {
             dayOfWeek: '1',
             startTime: '09:00',
             endTime: '17:00',
-            slotMinutes: '30',
             validFrom: '',
             validTo: '',
             timezone: PARIS_TZ,
@@ -79,7 +77,6 @@ const Rules = ({ calendarId }: RulesProps) => {
             dayOfWeek: String(rule.dayOfWeek),
             startTime: rule.startTime,
             endTime: rule.endTime,
-            slotMinutes: String(rule.slotMinutes),
             validFrom: rule.validFrom || '',
             validTo: rule.validTo || '',
             timezone: rule.timezone || PARIS_TZ,
@@ -92,7 +89,6 @@ const Rules = ({ calendarId }: RulesProps) => {
             dayOfWeek: Number(form.dayOfWeek),
             startTime: form.startTime,
             endTime: form.endTime,
-            slotMinutes: Number(form.slotMinutes),
             validFrom: form.validFrom || null,
             validTo: form.validTo || null,
             timezone: PARIS_TZ,
@@ -144,9 +140,6 @@ const Rules = ({ calendarId }: RulesProps) => {
                                         <p className="text-sm font-semibold">
                                             {dayLabels[rule.dayOfWeek]} {rule.startTime} - {rule.endTime}
                                         </p>
-                                        <p className="text-xs text-foreground/60">
-                                            Slot {rule.slotMinutes} min
-                                        </p>
                                     </div>
                                     <div className="flex gap-2">
                                         <Button size="sm" variant="flat" onPress={() => openEdit(rule)}>
@@ -187,12 +180,6 @@ const Rules = ({ calendarId }: RulesProps) => {
                         </Select>
                         <Input label="Debut" type="time" value={form.startTime} onValueChange={(value) => setForm({ ...form, startTime: value })} />
                         <Input label="Fin" type="time" value={form.endTime} onValueChange={(value) => setForm({ ...form, endTime: value })} />
-                        <Input
-                            label="Duree slot (min)"
-                            type="number"
-                            value={form.slotMinutes}
-                            onValueChange={(value) => setForm({ ...form, slotMinutes: value })}
-                        />
                         <Input
                             label="Valide du"
                             type="date"
