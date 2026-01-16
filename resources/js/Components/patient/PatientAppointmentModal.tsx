@@ -30,8 +30,8 @@ export const PatientAppointmentModal = ({
             <ModalContent>
                 <ModalHeader>Prendre rendez-vous</ModalHeader>
                 <ModalBody className="space-y-4">
-                    <div className="rounded-large border border-neutral-800 bg-neutral-900 px-4 py-3 text-sm text-neutral-300">
-                        <p className="font-semibold text-white">{appointmentType?.label || 'Rendez-vous'}</p>
+                    <div className="rounded-large border border-sams-border bg-sams-surface px-4 py-3 text-sm text-sams-text/80">
+                        <p className="font-semibold text-sams-text">{appointmentType?.label || 'Rendez-vous'}</p>
                         {slot ? (
                             <p>
                                 {formatDateTimeFR(slot.startAt)} - {formatDateTimeFR(slot.endAt)}

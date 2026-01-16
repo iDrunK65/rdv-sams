@@ -69,9 +69,9 @@ const AppointmentHome = () => {
         return (
             <PatientLayout>
                 <Head title="Prise de RDV" />
-                <Card className="border border-neutral-800 bg-neutral-900">
+                <Card className="border border-sams-border bg-sams-surface">
                     <CardBody className="space-y-3">
-                        <p className="text-sm text-neutral-400">
+                        <p className="text-sm text-sams-muted">
                             Le token patient est manquant ou expire. Veuillez revenir a la page d acces.
                         </p>
                         <Button color="primary" onPress={() => router.visit('/')}>
@@ -99,12 +99,12 @@ const AppointmentHome = () => {
                 </div>
             ) : (
                 <div className="space-y-6">
-                    <Card className="border border-neutral-800 bg-neutral-900">
+                    <Card className="border border-sams-border bg-sams-surface">
                         <CardBody className="space-y-2">
                             <h2 className="text-xl font-semibold">
                                 {doctor?.name || doctor?.identifier || 'Medecin'}
                             </h2>
-                            <p className="text-sm text-neutral-400">
+                            <p className="text-sm text-sams-muted">
                                 Choisissez un type de rendez-vous pour afficher les creneaux.
                             </p>
                         </CardBody>

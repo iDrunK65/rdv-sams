@@ -112,6 +112,7 @@ const Exceptions = ({ calendarId }: ExceptionsProps) => {
                 <PageHeader
                     title="Exceptions de disponibilite"
                     subtitle="Ajoutez des indisponibilites ou des creneaux ponctuels."
+                    backHref={`/dashboard/config/${calendarId}`}
                     actions={
                         <Button color="primary" onPress={openCreate}>
                             Nouvelle exception
@@ -127,13 +128,13 @@ const Exceptions = ({ calendarId }: ExceptionsProps) => {
                             {items.map((item) => (
                                 <div
                                     key={item._id || item.id}
-                                    className="flex flex-wrap items-center justify-between gap-2 rounded-large border border-white/10 bg-black/30 px-4 py-3"
+                                    className="flex flex-wrap items-center justify-between gap-2 rounded-large border border-sams-border bg-sams-surface/70 px-4 py-3"
                                 >
                                     <div>
                                         <p className="text-sm font-semibold">
                                             {item.date} {item.startTime} - {item.endTime}
                                         </p>
-                                        <p className="text-xs text-foreground/60">{item.kind}</p>
+                                        <p className="text-xs text-sams-muted">{item.kind}</p>
                                     </div>
                                     <div className="flex gap-2">
                                         <Button size="sm" variant="flat" onPress={() => openEdit(item)}>

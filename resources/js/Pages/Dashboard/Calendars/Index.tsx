@@ -37,7 +37,7 @@ type ViewRange = {
 
 const getEventTextColor = (hexColor?: string | null) => {
     if (!hexColor || !hexColor.startsWith('#') || hexColor.length !== 7) {
-        return '#0B0B0B';
+        return '#0B1220';
     }
 
     const r = parseInt(hexColor.slice(1, 3), 16) / 255;
@@ -45,7 +45,7 @@ const getEventTextColor = (hexColor?: string | null) => {
     const b = parseInt(hexColor.slice(5, 7), 16) / 255;
     const luminance = 0.2126 * r + 0.7152 * g + 0.0722 * b;
 
-    return luminance > 0.6 ? '#0B0B0B' : '#F8FAFC';
+    return luminance > 0.6 ? '#0B1220' : '#F8FAFC';
 };
 
 const isAllDayEvent = (startAt: string, endAt?: string | null) => {
@@ -358,9 +358,9 @@ const CalendarsIndex = () => {
                 start: event.startAt,
                 end: event.endAt,
                 allDay,
-                backgroundColor: '#94A3B8',
-                borderColor: '#CBD5F5',
-                textColor: '#0B0B0B',
+                backgroundColor: '#818CF8',
+                borderColor: '#C7D2FE',
+                textColor: '#0B1220',
                 extendedProps: {
                     kind: 'sams',
                     description: event.description,
@@ -485,7 +485,7 @@ const CalendarsIndex = () => {
                 <div className="calendar-shell p-4">
                     <div className="flex flex-col gap-4 lg:flex-row lg:items-center lg:justify-between">
                         <div className="space-y-1">
-                            <p className="text-sm text-neutral-400">{viewTitle || 'Calendrier'}</p>
+                            <p className="text-sm text-sams-muted">{viewTitle || 'Calendrier'}</p>
                             <div className="flex flex-wrap items-center gap-2">
                                 <Button size="sm" variant="flat" onPress={() => handleNavigate('today')}>
                                     Aujourd hui
@@ -535,10 +535,10 @@ const CalendarsIndex = () => {
                             </div>
                         </div>
                     </div>
-                    <Card className="mt-4 border border-neutral-800 bg-neutral-900/60">
+                    <Card className="mt-4 border border-sams-border bg-sams-surface/70">
                         <CardBody className="relative">
                             {appointmentsLoading ? (
-                                <div className="absolute inset-0 z-10 flex items-center justify-center bg-black/40">
+                                <div className="absolute inset-0 z-10 flex items-center justify-center bg-sams-bg/70">
                                     <Spinner />
                                 </div>
                             ) : null}

@@ -65,38 +65,72 @@
 }
 
 :root {
-    --background: oklch(0.145 0 0);
-    --foreground: oklch(0.985 0 0);
-    --card: oklch(0.145 0 0);
-    --card-foreground: oklch(0.985 0 0);
-    --popover: oklch(0.145 0 0);
-    --popover-foreground: oklch(0.985 0 0);
-    --primary: oklch(0.985 0 0);
-    --primary-foreground: oklch(0.205 0 0);
-    --secondary: oklch(0.269 0 0);
-    --secondary-foreground: oklch(0.985 0 0);
-    --muted: oklch(0.269 0 0);
-    --muted-foreground: oklch(0.708 0 0);
-    --accent: oklch(0.269 0 0);
-    --accent-foreground: oklch(0.985 0 0);
-    --destructive: oklch(0.396 0.141 25.723);
-    --destructive-foreground: oklch(0.637 0.237 25.331);
-    --border: oklch(0.269 0 0);
-    --input: oklch(0.269 0 0);
-    --ring: oklch(0.439 0 0);
-    --chart-1: oklch(0.488 0.243 264.376);
-    --chart-2: oklch(0.696 0.17 162.48);
-    --chart-3: oklch(0.769 0.188 70.08);
-    --chart-4: oklch(0.627 0.265 303.9);
-    --chart-5: oklch(0.645 0.246 16.439);
-    --sidebar: oklch(0.205 0 0);
-    --sidebar-foreground: oklch(0.985 0 0);
-    --sidebar-primary: oklch(0.985 0 0);
-    --sidebar-primary-foreground: oklch(0.985 0 0);
-    --sidebar-accent: oklch(0.269 0 0);
-    --sidebar-accent-foreground: oklch(0.985 0 0);
-    --sidebar-border: oklch(0.269 0 0);
-    --sidebar-ring: oklch(0.439 0 0);
+    --sams-bg: 11 18 32;
+    --sams-surface: 15 27 45;
+    --sams-surface-2: 18 39 68;
+    --sams-border: 27 47 74;
+    --sams-text: 230 238 248;
+    --sams-muted: 159 179 200;
+    --sams-accent: 56 189 248;
+    --sams-accent-2: 34 211 238;
+
+    --background: rgb(var(--sams-bg));
+    --foreground: rgb(var(--sams-text));
+    --card: rgb(var(--sams-surface));
+    --card-foreground: rgb(var(--sams-text));
+    --popover: rgb(var(--sams-surface));
+    --popover-foreground: rgb(var(--sams-text));
+    --primary: rgb(var(--sams-accent));
+    --primary-foreground: rgb(6 16 26);
+    --secondary: rgb(var(--sams-surface-2));
+    --secondary-foreground: rgb(var(--sams-text));
+    --muted: rgb(var(--sams-surface-2));
+    --muted-foreground: rgb(var(--sams-muted));
+    --accent: rgb(var(--sams-accent-2));
+    --accent-foreground: rgb(6 16 26);
+    --destructive: rgb(239 68 68);
+    --destructive-foreground: rgb(254 226 226);
+    --border: rgb(var(--sams-border));
+    --input: rgb(var(--sams-surface-2));
+    --ring: rgb(var(--sams-accent));
+    --chart-1: rgb(56 189 248);
+    --chart-2: rgb(14 165 233);
+    --chart-3: rgb(99 102 241);
+    --chart-4: rgb(34 211 238);
+    --chart-5: rgb(45 212 191);
+    --sidebar: rgb(var(--sams-surface));
+    --sidebar-foreground: rgb(var(--sams-text));
+    --sidebar-primary: rgb(var(--sams-accent));
+    --sidebar-primary-foreground: rgb(6 16 26);
+    --sidebar-accent: rgb(var(--sams-surface-2));
+    --sidebar-accent-foreground: rgb(var(--sams-text));
+    --sidebar-border: rgb(var(--sams-border));
+    --sidebar-ring: rgb(var(--sams-accent));
+
+    /* HeroUI palette overrides (dark, navy surfaces). */
+    --heroui-background: 220 49% 8%;
+    --heroui-foreground: 213 56% 94%;
+    --heroui-content1: 216 50% 12%;
+    --heroui-content1-foreground: 213 56% 94%;
+    --heroui-content2: 215 58% 17%;
+    --heroui-content2-foreground: 213 56% 94%;
+    --heroui-content3: 214 47% 20%;
+    --heroui-content3-foreground: 213 56% 94%;
+    --heroui-content4: 214 47% 20%;
+    --heroui-content4-foreground: 213 56% 94%;
+    --heroui-divider: 214 47% 20%;
+    --heroui-overlay: 220 49% 8%;
+    --heroui-focus: 198 93% 60%;
+    --heroui-default: 215 58% 17%;
+    --heroui-default-foreground: 213 56% 94%;
+    --heroui-default-50: 220 49% 8%;
+    --heroui-default-100: 216 50% 17%;
+    --heroui-default-200: 215 58% 20%;
+    --heroui-default-300: 214 47% 20%;
+    --heroui-default-400: 214 47% 20%;
+    --heroui-default-500: 214 47% 20%;
+    --heroui-default-800: 214 47% 20%;
+    --heroui-default-900: 214 47% 20%;
 }
 
 @layer base {
@@ -105,24 +139,32 @@
     }
 
     body {
-        @apply bg-background text-foreground;
+        @apply bg-sams-bg text-sams-text;
+    }
+
+    button:focus-visible,
+    a:focus-visible,
+    input:focus-visible,
+    select:focus-visible,
+    textarea:focus-visible {
+        @apply outline-none ring-2 ring-sams-accent ring-offset-0;
     }
 }
 
 /* FullCalendar styling (dark, Google Calendar inspired) */
 .calendar-shell {
-    background: rgba(255, 255, 255, 0.02);
-    border: 1px solid rgba(255, 255, 255, 0.08);
+    background: rgb(var(--sams-surface) / 0.6);
+    border: 1px solid rgb(var(--sams-border) / 0.7);
     border-radius: 16px;
 }
 
 .fc {
-    --fc-border-color: rgba(255, 255, 255, 0.08);
+    --fc-border-color: rgb(var(--sams-border) / 0.7);
     --fc-page-bg-color: transparent;
-    --fc-neutral-bg-color: rgba(255, 255, 255, 0.03);
-    --fc-neutral-text-color: rgba(255, 255, 255, 0.6);
-    --fc-today-bg-color: rgba(59, 130, 246, 0.12);
-    --fc-now-indicator-color: rgba(248, 113, 113, 0.9);
+    --fc-neutral-bg-color: rgb(var(--sams-surface) / 0.5);
+    --fc-neutral-text-color: rgb(var(--sams-muted) / 0.9);
+    --fc-today-bg-color: rgb(var(--sams-accent) / 0.12);
+    --fc-now-indicator-color: rgb(248 113 113 / 0.9);
 }
 
 .fc .fc-scrollgrid,
@@ -140,33 +182,33 @@
 .fc .fc-col-header-cell-cushion,
 .fc .fc-timegrid-axis-cushion,
 .fc .fc-timegrid-slot-label-cushion {
-    color: rgba(255, 255, 255, 0.75);
+    color: rgb(var(--sams-text) / 0.8);
     font-weight: 500;
 }
 
 .fc .fc-timegrid-slot {
-    border-color: rgba(255, 255, 255, 0.06);
+    border-color: rgb(var(--sams-border) / 0.35);
 }
 
 .fc .fc-day-today {
-    background: rgba(59, 130, 246, 0.12);
+    background: rgb(var(--sams-accent) / 0.12);
 }
 
 .fc .fc-event {
     border-radius: 8px;
     border: 0;
     padding: 2px 6px;
-    box-shadow: 0 0 0 1px rgba(0, 0, 0, 0.2);
+    box-shadow: 0 0 0 1px rgb(var(--sams-border) / 0.6);
 }
 
 .fc .fc-bg-event.fc-availability-bg {
-    background: rgba(59, 130, 246, 0.12);
+    background: rgb(var(--sams-accent) / 0.12);
     border-radius: 6px;
 }
 
 .fc .fc-event.fc-available-slot {
-    background: rgba(59, 130, 246, 0.18);
-    border: 1px solid rgba(59, 130, 246, 0.35);
+    background: rgb(var(--sams-accent) / 0.2);
+    border: 1px solid rgb(var(--sams-accent) / 0.4);
     cursor: pointer;
 }
 
@@ -184,5 +226,5 @@
 }
 
 .fc .fc-list-event:hover td {
-    background: rgba(255, 255, 255, 0.06);
+    background: rgb(var(--sams-surface-2) / 0.5);
 }

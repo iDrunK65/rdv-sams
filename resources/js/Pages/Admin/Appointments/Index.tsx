@@ -47,7 +47,7 @@ const AdminAppointmentsIndex = () => {
         <AdminLayout>
             <Head title="Rendez-vous" />
             <div className="space-y-6">
-                <PageHeader title="Rendez-vous" subtitle="Vue globale des RDV." />
+                <PageHeader title="Rendez-vous" subtitle="Vue globale des RDV." backHref="/dashboard/admin" />
 
                 <SectionCard title="Filtres">
                     <div className="grid gap-3 md:grid-cols-3">
@@ -98,14 +98,14 @@ const AdminAppointmentsIndex = () => {
                             {appointments.map((appointment) => (
                                 <div
                                     key={appointment._id || appointment.id}
-                                    className="flex flex-wrap items-center justify-between gap-2 rounded-large border border-white/10 bg-black/30 px-4 py-3"
+                                    className="flex flex-wrap items-center justify-between gap-2 rounded-large border border-sams-border bg-sams-surface/70 px-4 py-3"
                                 >
                                     <div>
                                         <p className="text-sm font-semibold">
                                             {appointment.patient?.lastname || 'Patient'} -{' '}
                                             {formatDateTimeFR(appointment.startAt)}
                                         </p>
-                                        <p className="text-xs text-foreground/60">{appointment.doctorId}</p>
+                                        <p className="text-xs text-sams-muted">{appointment.doctorId}</p>
                                     </div>
                                     <StatusPill value={appointment.status} />
                                 </div>

@@ -83,7 +83,11 @@ const SamsEdit = ({ id }: SamsEditProps) => {
         <AdminLayout>
             <Head title="Modifier un evenement" />
             <div className="space-y-6">
-                <PageHeader title="Modifier un evenement SAMS" subtitle={event?.title || ''} />
+                <PageHeader
+                    title="Modifier un evenement SAMS"
+                    subtitle={event?.title || ''}
+                    backHref="/dashboard/admin/calendrier-sams"
+                />
                 <form onSubmit={handleSubmit} className="space-y-4">
                     <Input label="Titre" value={title} onValueChange={setTitle} isRequired />
                     <Input label="Debut" type="datetime-local" value={startAt} onValueChange={setStartAt} isRequired />

@@ -31,8 +31,8 @@ export const AdminLayout = ({ children }: AdminLayoutProps) => {
     };
 
     return (
-        <div className="min-h-screen bg-neutral-950 text-neutral-100">
-            <div className="flex min-h-screen">
+        <div className="h-screen overflow-hidden bg-sams-bg text-sams-text">
+            <div className="flex h-screen">
                 <Sidebar
                     items={adminItems}
                     activePath={url}
@@ -42,8 +42,8 @@ export const AdminLayout = ({ children }: AdminLayoutProps) => {
                                 Retour panel
                             </Button>
                             <div className="text-sm">
-                                <p className="text-neutral-400">Connecte</p>
-                                <p className="font-semibold text-white">{user?.name || user?.identifier || 'Admin'}</p>
+                                <p className="text-sams-muted">Connecte</p>
+                                <p className="font-semibold text-sams-text">{user?.name || user?.identifier || 'Admin'}</p>
                             </div>
                             <Button variant="flat" size="sm" onPress={handleLogout}>
                                 Deconnexion
@@ -52,19 +52,21 @@ export const AdminLayout = ({ children }: AdminLayoutProps) => {
                     }
                 />
                 <div className="flex-1">
-                    <header className="border-b border-neutral-800 bg-neutral-950">
+                    <header className="border-b border-sams-border bg-sams-surface">
                         <div className="mx-auto flex max-w-6xl items-center justify-between px-6 py-4">
                             <div className="flex items-center gap-2 lg:hidden">
                                 <Button as={Link} href="/dashboard/admin" size="sm" variant="flat">
                                     Admin
                                 </Button>
                             </div>
-                            <div className="text-sm text-neutral-400">
+                            <div className="text-sm text-sams-muted">
                                 {isAdmin && user ? `Admin: ${user.name || user.identifier}` : 'Acces restreint'}
                             </div>
                         </div>
                     </header>
-                    <main className="mx-auto max-w-6xl px-6 py-8">{children}</main>
+                    <div className='overflow-y-auto max-h-full px-6 py-8' >
+                        <main className="mx-auto max-w-6xl">{children}</main>
+                    </div>
                 </div>
             </div>
         </div>

@@ -17,22 +17,22 @@ export const SamsEventDetailsModal = ({ isOpen, event, onClose }: SamsEventDetai
                 <ModalHeader>Details evenement SAMS</ModalHeader>
                 <ModalBody className="space-y-4">
                     {!event ? (
-                        <p className="text-sm text-neutral-400">Aucun evenement selectionne.</p>
+                        <p className="text-sm text-sams-muted">Aucun evenement selectionne.</p>
                     ) : (
                         <>
                             <SectionCard title="Evenement">
                                 <div className="space-y-1 text-sm">
                                     <p className="font-semibold">{event.title || 'SAMS'}</p>
-                                    <p className="text-neutral-400">
+                                    <p className="text-sams-muted">
                                         {formatDateTimeFR(event.startAt)} - {formatDateTimeFR(event.endAt)}
                                     </p>
                                 </div>
                             </SectionCard>
                             <SectionCard title="Localisation">
-                                <p className="text-sm text-neutral-300">{event.location || 'Non renseignee'}</p>
+                                <p className="text-sm text-sams-text/80">{event.location || 'Non renseignee'}</p>
                             </SectionCard>
                             <SectionCard title="Description">
-                                <p className="text-sm text-neutral-300">{event.description || 'Aucune description'}</p>
+                                <p className="text-sm text-sams-text/80">{event.description || 'Aucune description'}</p>
                             </SectionCard>
                         </>
                     )}

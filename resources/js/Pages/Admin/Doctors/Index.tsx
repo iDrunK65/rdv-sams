@@ -60,8 +60,16 @@ const buildName = (firstName: string, lastName: string): string | undefined => {
 const resolveSpecialtyId = (value: unknown): string | null => {
     if (typeof value === 'string') return value;
     if (value && typeof value === 'object') {
-        const candidate = value as { _id?: string; id?: string };
-        return candidate._id || candidate.id || null;
+        const directOid = (value as { $oid?: unknown }).$oid;
+        if (typeof directOid === 'string') return directOid;
+
+        const candidate = value as { _id?: unknown; id?: unknown };
+        const direct = candidate._id ?? candidate.id;
+        if (typeof direct === 'string') return direct;
+        if (direct && typeof direct === 'object') {
+            const nestedOid = (direct as { $oid?: unknown }).$oid;
+            if (typeof nestedOid === 'string') return nestedOid;
+        }
     }
     return null;
 };
@@ -217,6 +225,7 @@ const DoctorsIndex = () => {
                 <PageHeader
                     title="Comptes medecins"
                     subtitle="Gerez les comptes des soignants."
+                    backHref="/dashboard/admin"
                     actions={
                         <Button color="primary" onPress={openCreate}>
                             Nouveau compte
@@ -237,19 +246,19 @@ const DoctorsIndex = () => {
                             {doctors.map((doctor) => {
                                 const id = doctor._id || doctor.id || '';
                                 const name = doctor.name || doctor.identifier;
-                                const labels = normalizeSpecialtyIds(doctor.specialtyIds as unknown[])
-                                    .map((specialtyId) => specialtyMap.get(specialtyId) || specialtyId)
-                                    .filter(Boolean);
+                                const labels = normalizeSpecialtyIds(doctor.specialtyIds as unknown[]).map(
+                                    (specialtyId) => specialtyMap.get(specialtyId) || specialtyId,
+                                );
                                 return (
                                     <TableRow key={id}>
                                         <TableCell>
                                             <div className="space-y-1">
                                                 <p className="font-semibold">{name}</p>
-                                                <p className="text-xs text-foreground/60">{doctor.identifier}</p>
+                                                <p className="text-xs text-sams-muted">{doctor.identifier}</p>
                                             </div>
                                         </TableCell>
                                         <TableCell>
-                                            <p className="text-sm text-foreground/70">
+                                            <p className="text-sm text-sams-muted">
                                                 {labels.length > 0 ? labels.join(', ') : 'Aucune'}
                                             </p>
                                         </TableCell>

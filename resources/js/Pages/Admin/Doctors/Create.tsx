@@ -45,7 +45,11 @@ const DoctorsCreate = () => {
         <AdminLayout>
             <Head title="Creer un compte" />
             <div className="space-y-6">
-                <PageHeader title="Creer un compte" subtitle="Ajoutez un nouveau compte medecin." />
+                <PageHeader
+                    title="Creer un compte"
+                    subtitle="Ajoutez un nouveau compte medecin."
+                    backHref="/dashboard/admin/comptes"
+                />
                 <form onSubmit={handleSubmit} className="space-y-4">
                     <Input label="Identifiant" value={identifier} onValueChange={setIdentifier} isRequired />
                     <Input label="Nom" value={name} onValueChange={setName} />

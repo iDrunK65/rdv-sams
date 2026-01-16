@@ -16,12 +16,12 @@ const getScopeLabel = (scope: Calendar['scope']) => {
 
 export const CalendarCard = ({ calendar, href }: CalendarCardProps) => {
     return (
-        <Card className="border border-neutral-800 bg-neutral-900">
+        <Card className="border border-sams-border bg-sams-surface">
             <CardBody className="space-y-3">
                 <div className="flex items-start justify-between gap-3">
                     <div>
-                        <p className="text-xs uppercase text-neutral-400">{getScopeLabel(calendar.scope)}</p>
-                        <h3 className="text-lg font-semibold text-white">{calendar.label || 'Calendrier'}</h3>
+                        <p className="text-xs uppercase text-sams-muted">{getScopeLabel(calendar.scope)}</p>
+                        <h3 className="text-lg font-semibold text-sams-text">{calendar.label || 'Calendrier'}</h3>
                     </div>
                     {calendar.color ? (
                         <span className="mt-1 h-3 w-3 rounded-full" style={{ backgroundColor: calendar.color }} />

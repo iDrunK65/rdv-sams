@@ -46,7 +46,7 @@ export const EventDrawer = ({
             <DrawerContent>
                 <DrawerHeader className="flex items-center justify-between">
                     <div>
-                        <p className="text-sm text-neutral-400">Rendez-vous</p>
+                        <p className="text-sm text-sams-muted">Rendez-vous</p>
                         <h3 className="text-lg font-semibold">{patientName}</h3>
                     </div>
                     <StatusPill value={appointment.status} />
@@ -56,21 +56,21 @@ export const EventDrawer = ({
                     <SectionCard title="Patient">
                         <div className="space-y-1 text-sm">
                             <p className="font-semibold">{patientName}</p>
-                            {patientPhone ? <p className="text-neutral-300">{patientPhone}</p> : null}
-                            {patientCompany ? <p className="text-neutral-400">{patientCompany}</p> : null}
+                            {patientPhone ? <p className="text-sams-text/80">{patientPhone}</p> : null}
+                            {patientCompany ? <p className="text-sams-muted">{patientCompany}</p> : null}
                         </div>
                     </SectionCard>
 
                     <SectionCard title="RDV">
                         <div className="space-y-2 text-sm">
                             <div>
-                                <p className="text-neutral-400">Creneau</p>
+                                <p className="text-sams-muted">Creneau</p>
                                 <p className="font-semibold">{formatDateTimeFR(appointment.startAt)}</p>
-                                <p className="text-neutral-400">{formatDateTimeFR(appointment.endAt)}</p>
+                                <p className="text-sams-muted">{formatDateTimeFR(appointment.endAt)}</p>
                             </div>
                             {appointment.reason ? (
                                 <div>
-                                    <p className="text-neutral-400">Raison</p>
+                                    <p className="text-sams-muted">Raison</p>
                                     <p>{appointment.reason}</p>
                                 </div>
                             ) : null}
@@ -80,7 +80,7 @@ export const EventDrawer = ({
                     <SectionCard title="Calendrier">
                         <div className="space-y-1 text-sm">
                             <p className="font-semibold">{calendarDisplay || 'Calendrier'}</p>
-                            {doctorDisplay ? <p className="text-neutral-400">Soignant: {doctorDisplay}</p> : null}
+                            {doctorDisplay ? <p className="text-sams-muted">Soignant: {doctorDisplay}</p> : null}
                         </div>
                     </SectionCard>
 

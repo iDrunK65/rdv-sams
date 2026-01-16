@@ -8,7 +8,7 @@ type PatientLayoutProps = {
 
 export const PatientLayout = ({ children }: PatientLayoutProps) => {
     return (
-        <div className="min-h-screen bg-neutral-950 text-neutral-100">
+        <div className="min-h-screen bg-sams-bg text-sams-text">
             <AppHeader />
             <main className="mx-auto max-w-6xl px-6 py-8">{children}</main>
         </div>

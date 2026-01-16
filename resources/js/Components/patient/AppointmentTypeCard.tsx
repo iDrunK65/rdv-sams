@@ -15,11 +15,11 @@ export const AppointmentTypeCard = ({
     onSelect,
 }: AppointmentTypeCardProps) => {
     return (
-        <Card className="border border-neutral-800 bg-neutral-900">
+        <Card className="border border-sams-border bg-sams-surface">
             <CardBody className="flex flex-col gap-3">
                 <div>
-                    <p className="text-lg font-semibold text-white">{title}</p>
-                    {description ? <div className="text-sm text-neutral-400">{description}</div> : null}
+                    <p className="text-lg font-semibold text-sams-text">{title}</p>
+                    {description ? <div className="text-sm text-sams-muted">{description}</div> : null}
                 </div>
                 <Button color="primary" onPress={onSelect}>
                     {actionLabel}

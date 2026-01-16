@@ -31,8 +31,8 @@ const DoctorLogin = () => {
             <Head title="Connexion medecin" />
             <div className="space-y-6">
                 <div>
-                    <h1 className="text-3xl font-semibold text-white">Connectez vous sur votre espace medecin</h1>
-                    <p className="mt-2 text-sm text-neutral-400">Entrez vos identifiants.</p>
+                    <h1 className="text-3xl font-semibold text-sams-text">Connectez vous sur votre espace medecin</h1>
+                    <p className="mt-2 text-sm text-sams-muted">Entrez vos identifiants.</p>
                 </div>
                 <form onSubmit={handleSubmit} className="space-y-4">
                     <Input label="Identifiant" value={identifier} onValueChange={setIdentifier} isRequired />

@@ -5,6 +5,7 @@ import dayjs from 'dayjs';
 
 import { GoogleLikeBookingLayout } from '@/Components/patient/GoogleLikeBookingLayout';
 import { PatientAppointmentModal } from '@/Components/patient/PatientAppointmentModal';
+import { BackButton } from '@/Components/ui/BackButton';
 import { PatientLayout } from '@/Layouts/PatientLayout';
 import { patientApi } from '@/lib/api';
 import { PARIS_TZ, toIsoParis } from '@/lib/date';
@@ -143,9 +144,9 @@ const AppointmentCalendar = ({ calendarId }: AppointmentCalendarProps) => {
         return (
             <PatientLayout>
                 <Head title="Prise de RDV" />
-                <Card className="border border-neutral-800 bg-neutral-900">
+                <Card className="border border-sams-border bg-sams-surface">
                     <CardBody className="space-y-3">
-                        <p className="text-sm text-neutral-400">
+                        <p className="text-sm text-sams-muted">
                             Le token patient est manquant ou expire. Veuillez revenir a la page d acces.
                         </p>
                         <Button color="primary" onPress={() => router.visit('/')}>
@@ -196,22 +197,25 @@ const AppointmentCalendar = ({ calendarId }: AppointmentCalendarProps) => {
             <Head title="Prise de RDV" />
             <div className="space-y-6">
                 <div>
-                    <p className="text-sm text-neutral-400">Prise de rendez-vous</p>
-                    <h1 className="text-2xl font-semibold text-white">
+                    <div className="flex flex-wrap items-center gap-3">
+                        <BackButton href="/prise-rdv" label="Retour" />
+                        <p className="text-sm text-sams-muted">Prise de rendez-vous</p>
+                    </div>
+                    <h1 className="mt-2 text-2xl font-semibold text-sams-text">
                         {doctor?.name || doctor?.identifier || 'Medecin'}
                     </h1>
                 </div>
 
-                <div className="rounded-large border border-neutral-800 bg-neutral-900 p-6">
+                <div className="rounded-large border border-sams-border bg-sams-surface p-6">
                     <div className="grid gap-4 lg:grid-cols-[minmax(0,1fr)_320px]">
                         <div className="space-y-2">
-                            <p className="text-sm text-neutral-400">
+                            <p className="text-sm text-sams-muted">
                                 {selectedType
                                     ? `Rendez-vous de ${selectedType.durationMinutes} min`
                                     : 'Rendez-vous'}
                             </p>
-                            <p className="text-sm text-neutral-300">Lieu: a confirmer</p>
-                            <p className="text-sm text-neutral-400">
+                            <p className="text-sm text-sams-text/80">Lieu: Ocean Medical Center</p>
+                            <p className="text-sm text-sams-muted">
                                 Selectionnez une heure disponible pour finaliser votre RDV.
                             </p>
                         </div>
@@ -219,7 +223,7 @@ const AppointmentCalendar = ({ calendarId }: AppointmentCalendarProps) => {
                             {loadingTypes ? (
                                 <Spinner size="sm" />
                             ) : appointmentTypes.length === 0 ? (
-                                <p className="text-sm text-neutral-400">Aucun type de rendez-vous disponible.</p>
+                                <p className="text-sm text-sams-muted">Aucun type de rendez-vous disponible.</p>
                             ) : (
                                 <Select
                                     label="Type de rendez-vous"
@@ -250,7 +254,7 @@ const AppointmentCalendar = ({ calendarId }: AppointmentCalendarProps) => {
 
                 <div className="relative">
                     {loadingSlots ? (
-                        <div className="absolute inset-0 z-10 flex items-center justify-center rounded-large bg-black/40">
+                        <div className="absolute inset-0 z-10 flex items-center justify-center rounded-large bg-sams-bg/70">
                             <Spinner />
                         </div>
                     ) : null}

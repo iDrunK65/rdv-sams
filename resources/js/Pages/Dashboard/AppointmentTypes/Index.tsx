@@ -111,6 +111,7 @@ const AppointmentTypesIndex = ({ calendarId }: AppointmentTypesProps) => {
                 <PageHeader
                     title="Types de rendez-vous"
                     subtitle="Definissez les types de rendez-vous disponibles."
+                    backHref={`/dashboard/config/${calendarId}`}
                     actions={
                         <Button color="primary" onPress={openCreate}>
                             Nouveau type
@@ -126,11 +127,11 @@ const AppointmentTypesIndex = ({ calendarId }: AppointmentTypesProps) => {
                             {items.map((item) => (
                                 <div
                                     key={item._id || item.id}
-                                    className="flex flex-wrap items-center justify-between gap-2 rounded-large border border-white/10 bg-black/30 px-4 py-3"
+                                    className="flex flex-wrap items-center justify-between gap-2 rounded-large border border-sams-border bg-sams-surface/70 px-4 py-3"
                                 >
                                     <div>
                                         <p className="text-sm font-semibold">{item.label}</p>
-                                        <p className="text-xs text-foreground/60">{item.durationMinutes} min</p>
+                                        <p className="text-xs text-sams-muted">{item.durationMinutes} min</p>
                                     </div>
                                     <div className="flex gap-2">
                                         <Button size="sm" variant="flat" onPress={() => openEdit(item)}>

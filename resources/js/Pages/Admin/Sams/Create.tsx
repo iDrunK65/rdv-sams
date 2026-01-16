@@ -40,7 +40,7 @@ const SamsCreate = () => {
         <AdminLayout>
             <Head title="Creer un evenement" />
             <div className="space-y-6">
-                <PageHeader title="Creer un evenement SAMS" />
+                <PageHeader title="Creer un evenement SAMS" backHref="/dashboard/admin/calendrier-sams" />
                 <form onSubmit={handleSubmit} className="space-y-4">
                     <Input label="Titre" value={title} onValueChange={setTitle} isRequired />
                     <Input label="Debut" type="datetime-local" value={startAt} onValueChange={setStartAt} isRequired />

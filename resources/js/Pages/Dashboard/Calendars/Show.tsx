@@ -59,23 +59,19 @@ const CalendarShow = ({ calendarId }: CalendarShowProps) => {
                 <PageHeader
                     title="Configuration du calendrier"
                     subtitle="Gerez les parametres de ce calendrier."
-                    actions={
-                        <Button as={Link} href="/dashboard" variant="flat">
-                            Retour dashboard
-                        </Button>
-                    }
+                    backHref="/dashboard"
                 />
 
                 {loading ? (
                     <Spinner />
                 ) : (
                     <div className="space-y-6">
-                        <Card className="border border-neutral-800 bg-neutral-900">
+                        <Card className="border border-sams-border bg-sams-surface">
                             <CardBody className="space-y-2">
-                                <p className="text-sm text-neutral-400">Calendrier</p>
+                                <p className="text-sm text-sams-muted">Calendrier</p>
                                 <h2 className="text-xl font-semibold">{calendar?.label || calendar?.scope}</h2>
                                 {calendar?.color ? (
-                                    <div className="flex items-center gap-2 text-sm text-neutral-400">
+                                    <div className="flex items-center gap-2 text-sm text-sams-muted">
                                         <span
                                             className="h-3 w-3 rounded-full"
                                             style={{ backgroundColor: calendar.color }}
@@ -105,7 +101,7 @@ const CalendarShow = ({ calendarId }: CalendarShowProps) => {
                                 </div>
                             }
                         >
-                            <p className="text-sm text-neutral-400">
+                            <p className="text-sm text-sams-muted">
                                 Utilisez les regles pour definir les horaires de base et ajoutez des exceptions pour
                                 ajuster un jour precis.
                             </p>
@@ -125,7 +121,7 @@ const CalendarShow = ({ calendarId }: CalendarShowProps) => {
                                 </Button>
                             }
                         >
-                            <p className="text-sm text-neutral-400">
+                            <p className="text-sm text-sams-muted">
                                 Configurez la duree et les buffers avant/apres pour les rendez-vous.
                             </p>
                         </SectionCard>
@@ -141,7 +137,7 @@ const CalendarShow = ({ calendarId }: CalendarShowProps) => {
                                     value={color}
                                     onValueChange={setColor}
                                 />
-                                <div className="text-sm text-neutral-400">
+                                <div className="text-sm text-sams-muted">
                                     <span className="mr-2">Apercu</span>
                                     <span className="inline-flex h-3 w-6 rounded-full" style={{ backgroundColor: color }} />
                                 </div>

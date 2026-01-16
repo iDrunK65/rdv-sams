@@ -9,10 +9,10 @@ type VmCardProps = {
 
 export const VmCard = ({ calendar, onSelect }: VmCardProps) => {
     return (
-        <Card className="border border-white/10 bg-gradient-to-br from-white/10 to-white/5">
+        <Card className="border border-sams-border bg-gradient-to-br from-sams-surface to-sams-surface2">
             <CardBody className="flex flex-col gap-3">
                 <div>
-                    <p className="text-sm text-foreground/70">Visite medicale</p>
+                    <p className="text-sm text-sams-muted">Visite medicale</p>
                     <h3 className="text-lg font-semibold">{calendar.label || 'Calendrier medecin'}</h3>
                 </div>
                 <Button color="primary" onPress={onSelect}>

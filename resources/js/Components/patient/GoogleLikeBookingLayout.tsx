@@ -24,13 +24,13 @@ export const GoogleLikeBookingLayout = ({
     header,
 }: GoogleLikeBookingLayoutProps) => {
     return (
-        <div className="rounded-large border border-neutral-800 bg-neutral-900 p-6">
+        <div className="rounded-large border border-sams-border bg-sams-surface p-6">
             <div className="flex flex-col gap-6">
                 {header ? <div>{header}</div> : null}
                 <div className="grid gap-6 lg:grid-cols-[280px_minmax(0,1fr)]">
                     <MiniMonthCalendar selectedDate={selectedDate} onSelect={onSelectDate} />
                     <div className="space-y-4">
-                        <div className="flex items-center justify-between text-sm text-neutral-400">
+                        <div className="flex items-center justify-between text-sm text-sams-muted">
                             <p>Selectionner une heure de rendez-vous</p>
                             <p>Heure locale</p>
                         </div>

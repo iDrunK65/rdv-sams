@@ -40,12 +40,12 @@ export const SlotsGrid = ({ days, slots, selectedSlotStart, onSelect }: SlotsGri
                 return (
                     <div key={key} className="space-y-2">
                         <div className="text-center">
-                            <p className="text-xs text-neutral-400">{dayLabels[dayIndex]}</p>
-                            <p className="text-sm font-semibold text-white">{dayjs.tz(day, PARIS_TZ).date()}</p>
+                            <p className="text-xs text-sams-muted">{dayLabels[dayIndex]}</p>
+                            <p className="text-sm font-semibold text-sams-text">{dayjs.tz(day, PARIS_TZ).date()}</p>
                         </div>
                         <div className="space-y-2">
                             {list.length === 0 ? (
-                                <p className="text-center text-xs text-neutral-600">-</p>
+                                <p className="text-center text-xs text-sams-muted/60">-</p>
                             ) : (
                                 list.map((slot) => {
                                     const isSelected = selectedSlotStart === slot.startAt;

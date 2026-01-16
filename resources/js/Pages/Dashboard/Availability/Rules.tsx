@@ -119,6 +119,7 @@ const Rules = ({ calendarId }: RulesProps) => {
                 <PageHeader
                     title="Regles de disponibilite"
                     subtitle="Definissez les creneaux reguliers de vos calendriers."
+                    backHref={`/dashboard/config/${calendarId}`}
                     actions={
                         <Button color="primary" onPress={openCreate}>
                             Nouvelle regle
@@ -134,7 +135,7 @@ const Rules = ({ calendarId }: RulesProps) => {
                             {rules.map((rule) => (
                                 <div
                                     key={rule._id || rule.id}
-                                    className="flex flex-wrap items-center justify-between gap-2 rounded-large border border-white/10 bg-black/30 px-4 py-3"
+                                    className="flex flex-wrap items-center justify-between gap-2 rounded-large border border-sams-border bg-sams-surface/70 px-4 py-3"
                                 >
                                     <div>
                                         <p className="text-sm font-semibold">

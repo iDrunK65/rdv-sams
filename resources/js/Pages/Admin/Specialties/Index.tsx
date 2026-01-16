@@ -145,6 +145,7 @@ const SpecialtiesIndex = () => {
                 <PageHeader
                     title="Specialites"
                     subtitle="Gerez la liste des specialites."
+                    backHref="/dashboard/admin"
                     actions={
                         <Button color="primary" onPress={openCreate}>
                             Nouvelle specialite

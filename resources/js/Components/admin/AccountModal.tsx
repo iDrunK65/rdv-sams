@@ -130,7 +130,7 @@ export const AccountModal = ({
                         ))}
                     </Select>
                     {specialties.length === 0 ? (
-                        <p className="text-xs text-neutral-400">
+                        <p className="text-xs text-sams-muted">
                             Aucune specialite chargee. Ajoutez des specialites dans le module admin.
                         </p>
                     ) : null}

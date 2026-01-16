@@ -138,9 +138,9 @@ const Booking = ({ calendarId }: BookingProps) => {
             start: slot.startAt,
             end: slot.endAt,
             classNames: ['fc-available-slot'],
-            backgroundColor: 'rgba(59, 130, 246, 0.18)',
-            borderColor: 'rgba(59, 130, 246, 0.4)',
-            textColor: '#E2E8F0',
+            backgroundColor: 'rgba(56, 189, 248, 0.18)',
+            borderColor: 'rgba(56, 189, 248, 0.4)',
+            textColor: '#E6EEF8',
         }));
     }, [slots]);
 
@@ -210,9 +210,9 @@ const Booking = ({ calendarId }: BookingProps) => {
         return (
             <PatientLayout>
                 <Head title="Prise de RDV" />
-                <Card className="border border-white/10 bg-white/5">
+                <Card className="border border-sams-border bg-sams-surface/70">
                     <CardBody className="space-y-3">
-                        <p className="text-sm text-foreground/70">
+                        <p className="text-sm text-sams-muted">
                             Le token patient est manquant ou expire. Veuillez revenir a la page d acces.
                         </p>
                         <Button color="primary" onPress={() => router.visit('/')}>
@@ -233,13 +233,13 @@ const Booking = ({ calendarId }: BookingProps) => {
         <PatientLayout>
             <Head title="Prise de RDV" />
             <div className="space-y-6">
-                <Card className="border border-white/10 bg-white/5">
+                <Card className="border border-sams-border bg-sams-surface/70">
                     <CardBody className="space-y-4">
                         <h2 className="text-xl font-semibold">Prendre un rendez-vous</h2>
                         {loadingTypes ? (
                             <Spinner />
                         ) : appointmentTypes.length === 0 ? (
-                            <p className="text-sm text-foreground/60">Aucun type de rendez-vous disponible.</p>
+                            <p className="text-sm text-sams-muted">Aucun type de rendez-vous disponible.</p>
                         ) : (
                             <Select
                                 label="Type de rendez-vous"
@@ -270,7 +270,7 @@ const Booking = ({ calendarId }: BookingProps) => {
                 <div className="calendar-shell p-4">
                     <div className="flex flex-col gap-4 lg:flex-row lg:items-center lg:justify-between">
                         <div className="space-y-1">
-                            <p className="text-sm text-foreground/60">{viewTitle || 'Calendrier'}</p>
+                            <p className="text-sm text-sams-muted">{viewTitle || 'Calendrier'}</p>
                             <div className="flex flex-wrap items-center gap-2">
                                 <Button size="sm" variant="flat" onPress={() => handleNavigate('today')}>
                                     Aujourd hui
@@ -296,10 +296,10 @@ const Booking = ({ calendarId }: BookingProps) => {
                             ))}
                         </div>
                     </div>
-                    <Card className="mt-4 border border-white/10 bg-black/30">
+                    <Card className="mt-4 border border-sams-border bg-sams-surface/70">
                         <CardBody className="relative">
                             {loadingSlots ? (
-                                <div className="absolute inset-0 z-10 flex items-center justify-center bg-black/40">
+                                <div className="absolute inset-0 z-10 flex items-center justify-center bg-sams-bg/70">
                                     <Spinner />
                                 </div>
                             ) : null}
@@ -329,7 +329,7 @@ const Booking = ({ calendarId }: BookingProps) => {
                     <ModalHeader>Prendre rendez-vous</ModalHeader>
                     <ModalBody className="space-y-4">
                         {selectedSlot ? (
-                            <div className="rounded-large border border-white/10 bg-white/5 px-4 py-3 text-sm">
+                            <div className="rounded-large border border-sams-border bg-sams-surface/70 px-4 py-3 text-sm">
                                 Creneau selectionne: {formatDateTimeFR(selectedSlot.startAt)} -{' '}
                                 {formatDateTimeFR(selectedSlot.endAt)}
                             </div>

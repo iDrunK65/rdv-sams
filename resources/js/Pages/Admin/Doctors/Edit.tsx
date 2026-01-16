@@ -92,7 +92,11 @@ const DoctorsEdit = ({ id }: DoctorsEditProps) => {
         <AdminLayout>
             <Head title="Modifier le compte" />
             <div className="space-y-6">
-                <PageHeader title="Modifier le compte" subtitle={doctor?.identifier || ''} />
+                <PageHeader
+                    title="Modifier le compte"
+                    subtitle={doctor?.identifier || ''}
+                    backHref="/dashboard/admin/comptes"
+                />
                 <form onSubmit={handleSave} className="space-y-4">
                     <Input label="Identifiant" value={identifier} onValueChange={setIdentifier} isRequired />
                     <Input label="Nom" value={name} onValueChange={setName} />
@@ -128,7 +132,7 @@ const DoctorsEdit = ({ id }: DoctorsEditProps) => {
                     </Button>
                 </form>
 
-                <div className="rounded-large border border-white/10 bg-white/5 p-4">
+                <div className="rounded-large border border-sams-border bg-sams-surface/70 p-4">
                     <p className="text-sm font-semibold">Reinitialiser le mot de passe</p>
                     <div className="mt-3 flex flex-wrap items-center gap-2">
                         <Input

@@ -71,20 +71,20 @@ export const GenerateTokenModal = ({ isOpen, calendars, onClose }: GenerateToken
                     </Select>
 
                     {token ? (
-                        <div className="space-y-2 rounded-large border border-neutral-800 bg-neutral-900 p-4">
+                        <div className="space-y-2 rounded-large border border-sams-border bg-sams-surface p-4">
                             <div className="flex flex-wrap items-center gap-2">
                                 <p className="font-semibold">Token :</p>
-                                <code className="text-sm text-neutral-300">{token.token}</code>
+                                <code className="text-sm text-sams-text/80">{token.token}</code>
                                 <CopyToClipboardButton value={token.token} />
                             </div>
                             {token.message ? (
                                 <div className="space-y-2">
                                     <p className="text-sm font-semibold">Message :</p>
-                                    <p className="text-sm text-neutral-400">{token.message}</p>
+                                    <p className="text-sm text-sams-muted">{token.message}</p>
                                     <CopyToClipboardButton value={token.message} label="Copier le message" />
                                 </div>
                             ) : null}
-                            <p className="text-xs text-neutral-500">Expire le {formatDateTimeFR(token.expiresAt)}</p>
+                            <p className="text-xs text-sams-muted/70">Expire le {formatDateTimeFR(token.expiresAt)}</p>
                         </div>
                     ) : null}
                 </ModalBody>

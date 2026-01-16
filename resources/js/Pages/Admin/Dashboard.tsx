@@ -11,7 +11,7 @@ const AdminDashboard = () => {
             <div className="space-y-6">
                 <PageHeader title="Dashboard admin" subtitle="Acces rapide aux modules administratifs." />
                 <div className="grid gap-4 md:grid-cols-3">
-                    <Card className="border border-neutral-800 bg-neutral-900">
+                    <Card className="border border-sams-border bg-sams-surface">
                         <CardBody className="space-y-3">
                             <h3 className="text-lg font-semibold">Comptes</h3>
                             <Button as={Link} href="/dashboard/admin/comptes" color="primary">
@@ -19,7 +19,7 @@ const AdminDashboard = () => {
                             </Button>
                         </CardBody>
                     </Card>
-                    <Card className="border border-neutral-800 bg-neutral-900">
+                    <Card className="border border-sams-border bg-sams-surface">
                         <CardBody className="space-y-3">
                             <h3 className="text-lg font-semibold">Calendrier SAMS</h3>
                             <Button as={Link} href="/dashboard/admin/calendrier-sams" color="primary">
@@ -27,7 +27,7 @@ const AdminDashboard = () => {
                             </Button>
                         </CardBody>
                     </Card>
-                    <Card className="border border-neutral-800 bg-neutral-900">
+                    <Card className="border border-sams-border bg-sams-surface">
                         <CardBody className="space-y-3">
                             <h3 className="text-lg font-semibold">Specialites</h3>
                             <Button as={Link} href="/dashboard/admin/specialites" color="primary">

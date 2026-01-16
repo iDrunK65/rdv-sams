@@ -31,7 +31,7 @@ const TokenLogin = () => {
     return (
         <GuestLayout
             headerAction={
-                <Link href="/login" className="text-sm text-foreground/70 hover:text-white">
+                <Link href="/login" className="text-sm text-sams-muted hover:text-sams-text">
                     Acces medecin
                 </Link>
             }
@@ -39,10 +39,10 @@ const TokenLogin = () => {
             <Head title="Acces patient" />
             <div className="space-y-6">
                 <div>
-                    <h1 className="text-3xl font-semibold text-white">
+                    <h1 className="text-3xl font-semibold text-sams-text">
                         Bienvenue sur notre plateforme de RDV medical
                     </h1>
-                    <p className="mt-2 text-sm text-foreground/70">Saisissez votre token temporaire.</p>
+                    <p className="mt-2 text-sm text-sams-muted">Saisissez votre token temporaire.</p>
                 </div>
                 <form onSubmit={handleSubmit} className="space-y-4">
                     <Input

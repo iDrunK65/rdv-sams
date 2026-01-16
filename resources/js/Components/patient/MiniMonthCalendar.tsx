@@ -52,9 +52,9 @@ export const MiniMonthCalendar = ({ selectedDate, onSelect }: MiniMonthCalendarP
     }, [month]);
 
     return (
-        <div className="rounded-large border border-neutral-800 bg-neutral-900 p-4">
+        <div className="rounded-large border border-sams-border bg-sams-surface p-4">
             <div className="mb-3 flex items-center justify-between">
-                <p className="text-sm font-semibold text-white">
+                <p className="text-sm font-semibold text-sams-text">
                     {monthLabels[month.month()]} {month.year()}
                 </p>
                 <div className="flex gap-2">
@@ -66,7 +66,7 @@ export const MiniMonthCalendar = ({ selectedDate, onSelect }: MiniMonthCalendarP
                     </Button>
                 </div>
             </div>
-            <div className="grid grid-cols-7 gap-1 text-center text-xs text-neutral-400">
+            <div className="grid grid-cols-7 gap-1 text-center text-xs text-sams-muted">
                 {dayLabels.map((label, index) => (
                     <div key={`${label}-${index}`}>{label}</div>
                 ))}
@@ -82,10 +82,10 @@ export const MiniMonthCalendar = ({ selectedDate, onSelect }: MiniMonthCalendarP
                             onClick={() => onSelect(day.toDate())}
                             className={`h-8 rounded-full text-xs transition ${
                                 isSelected
-                                    ? 'bg-blue-500 text-white'
+                                    ? 'bg-sams-accent text-sams-bg'
                                     : isCurrentMonth
-                                      ? 'text-white hover:bg-neutral-800'
-                                      : 'text-neutral-600'
+                                      ? 'text-sams-text hover:bg-sams-surface2'
+                                      : 'text-sams-muted/60'
                             }`}
                         >
                             {day.date()}

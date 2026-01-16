@@ -81,7 +81,7 @@ export const DoctorFilterModal = ({ isOpen, doctors, selectedIds, onClose, onApp
                     </div>
                     <div className="max-h-72 space-y-2 overflow-y-auto pr-2">
                         {filteredDoctors.length === 0 ? (
-                            <p className="text-sm text-neutral-400">Aucun soignant trouve.</p>
+                            <p className="text-sm text-sams-muted">Aucun soignant trouve.</p>
                         ) : (
                             filteredDoctors.map((doctor) => (
                                 <Checkbox
