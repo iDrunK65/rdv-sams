@@ -26,7 +26,7 @@ COPY . .
 
 
 ############################
-# 2️⃣ Assets (Vite / Wayfinder)
+# 2️⃣ Assets (Vite)
 ############################
 FROM php:8.4-cli-alpine AS assets
 WORKDIR /app
@@ -35,6 +35,9 @@ RUN apk add --no-cache nodejs npm
 
 COPY . .
 COPY --from=vendor /app/vendor /app/vendor
+
+# Disable Wayfinder during Docker build
+ENV WAYFINDER_DISABLED=true
 
 RUN npm install
 RUN npm run build
