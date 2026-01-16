@@ -14,6 +14,7 @@ use App\Models\User;
 use App\Services\AppointmentService;
 use App\Services\AuditService;
 use App\Services\AvailabilityService;
+use App\Services\PatientTokenService;
 use Carbon\Carbon;
 use Illuminate\Http\JsonResponse;
 use Illuminate\Http\Request;
@@ -411,7 +412,7 @@ class AppointmentController extends Controller
         return response()->json([
             'message' => 'Appointment created',
             'data' => $appointment,
-        ])->withCookie(cookie()->forget('patient_token'));
+        ])->withCookie(cookie()->forget(PatientTokenService::COOKIE_NAME));
     }
 
     /**

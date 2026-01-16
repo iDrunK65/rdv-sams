@@ -3,9 +3,7 @@ import { Head, Link, router } from '@inertiajs/react';
 import { Button, Input } from '@heroui/react';
 
 import { GuestLayout } from '@/Layouts/GuestLayout';
-import { api } from '@/lib/api';
-import type { ApiResponse, PatientTokenContext } from '@/lib/types';
-import { savePatientContext } from '@/lib/patient';
+import { patientApi } from '@/lib/api';
 import { useToast } from '@/hooks/useToast';
 
 const TokenLogin = () => {
@@ -15,14 +13,12 @@ const TokenLogin = () => {
 
     const handleSubmit = async (event: FormEvent) => {
         event.preventDefault();
-        if (!token) return;
+        const trimmed = token.trim();
+        if (!trimmed) return;
 
         setLoading(true);
         try {
-            const response = await api.post<ApiResponse<PatientTokenContext>>('/api/patient/token/validate', {
-                token,
-            });
-            savePatientContext(response.data.data);
+            await patientApi.validateToken({ token: trimmed });
             success('Token valide');
             router.visit('/prise-rdv');
         } catch {

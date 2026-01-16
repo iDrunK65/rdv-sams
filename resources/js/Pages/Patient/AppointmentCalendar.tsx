@@ -8,13 +8,14 @@ import { PatientAppointmentModal } from '@/Components/patient/PatientAppointment
 import { PatientLayout } from '@/Layouts/PatientLayout';
 import { patientApi } from '@/lib/api';
 import { toIsoUtc } from '@/lib/date';
-import { clearPatientContext, getPatientDoctorId } from '@/lib/patient';
+import { clearPatientContext } from '@/lib/patient';
 import type {
     ApiResponse,
     AppointmentType,
     AvailabilitySlot,
     Doctor,
     PatientInfo,
+    PatientTokenContext,
 } from '@/lib/types';
 import { useToast } from '@/hooks/useToast';
 
@@ -29,9 +30,10 @@ const startOfWeek = (date: dayjs.Dayjs) => {
 };
 
 const AppointmentCalendar = ({ calendarId }: AppointmentCalendarProps) => {
-    const doctorId = getPatientDoctorId() || '';
     const { success, error } = useToast();
 
+    const [context, setContext] = useState<PatientTokenContext | null>(null);
+    const [loadingContext, setLoadingContext] = useState(true);
     const [doctor, setDoctor] = useState<Doctor | null>(null);
     const [appointmentTypes, setAppointmentTypes] = useState<AppointmentType[]>([]);
     const [appointmentTypeId, setAppointmentTypeId] = useState('');
@@ -48,6 +50,23 @@ const AppointmentCalendar = ({ calendarId }: AppointmentCalendarProps) => {
     const [loadingSlots, setLoadingSlots] = useState(false);
     const [submitting, setSubmitting] = useState(false);
     const [modalOpen, setModalOpen] = useState(false);
+
+    useEffect(() => {
+        const loadContext = async () => {
+            try {
+                const response = await patientApi.getContext();
+                setContext((response.data as ApiResponse<PatientTokenContext>).data);
+            } catch {
+                setContext(null);
+            } finally {
+                setLoadingContext(false);
+            }
+        };
+
+        loadContext();
+    }, []);
+
+    const doctorId = context?.doctorId || '';
 
     useEffect(() => {
         if (!doctorId) return;
@@ -108,6 +127,17 @@ const AppointmentCalendar = ({ calendarId }: AppointmentCalendarProps) => {
 
         loadSlots();
     }, [doctorId, calendarId, appointmentTypeId, weekRange]);
+
+    if (loadingContext) {
+        return (
+            <PatientLayout>
+                <Head title="Prise de RDV" />
+                <div className="flex justify-center py-16">
+                    <Spinner size="lg" />
+                </div>
+            </PatientLayout>
+        );
+    }
 
     if (!doctorId) {
         return (

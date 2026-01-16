@@ -63,6 +63,7 @@ export const authApi = {
 
 export const patientApi = {
     validateToken: (payload: { token: string }) => api.post('/api/patient/token/validate', payload),
+    getContext: () => api.get('/api/patient/context'),
     getDoctor: (doctorId: string) => api.get(`/api/patient/doctors/${doctorId}`),
     getCalendars: (doctorId: string) => api.get(`/api/patient/doctors/${doctorId}/calendars`),
     getAppointmentTypes: (calendarId: string) => api.get(`/api/patient/calendars/${calendarId}/appointment-types`),

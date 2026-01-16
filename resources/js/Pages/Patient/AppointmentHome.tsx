@@ -5,14 +5,31 @@ import { Button, Card, CardBody, Spinner } from '@heroui/react';
 import { AppointmentTypeCard } from '@/Components/patient/AppointmentTypeCard';
 import { PatientLayout } from '@/Layouts/PatientLayout';
 import { patientApi } from '@/lib/api';
-import type { ApiResponse, Calendar, Doctor } from '@/lib/types';
-import { getPatientDoctorId } from '@/lib/patient';
+import type { ApiResponse, Calendar, Doctor, PatientTokenContext } from '@/lib/types';
 
 const AppointmentHome = () => {
-    const doctorId = getPatientDoctorId() || '';
+    const [context, setContext] = useState<PatientTokenContext | null>(null);
+    const [loadingContext, setLoadingContext] = useState(true);
     const [doctor, setDoctor] = useState<Doctor | null>(null);
     const [calendars, setCalendars] = useState<Calendar[]>([]);
     const [loading, setLoading] = useState(true);
+
+    useEffect(() => {
+        const loadContext = async () => {
+            try {
+                const response = await patientApi.getContext();
+                setContext((response.data as ApiResponse<PatientTokenContext>).data);
+            } catch {
+                setContext(null);
+            } finally {
+                setLoadingContext(false);
+            }
+        };
+
+        loadContext();
+    }, []);
+
+    const doctorId = context?.doctorId || '';
 
     useEffect(() => {
         if (!doctorId) {
@@ -21,6 +38,7 @@ const AppointmentHome = () => {
         }
 
         const load = async () => {
+            setLoading(true);
             try {
                 const [doctorRes, calendarsRes] = await Promise.all([
                     patientApi.getDoctor(doctorId),
@@ -35,6 +53,17 @@ const AppointmentHome = () => {
 
         load();
     }, [doctorId]);
+
+    if (loadingContext) {
+        return (
+            <PatientLayout>
+                <Head title="Prise de RDV" />
+                <div className="flex justify-center py-16">
+                    <Spinner size="lg" />
+                </div>
+            </PatientLayout>
+        );
+    }
 
     if (!doctorId) {
         return (

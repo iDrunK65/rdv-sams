@@ -5,8 +5,7 @@ import type { AxiosError } from 'axios';
 
 import { PublicLayout } from '@/Layouts/PublicLayout';
 import { patientApi } from '@/lib/api';
-import type { ApiError, ApiResponse, PatientTokenContext } from '@/lib/types';
-import { savePatientContext } from '@/lib/patient';
+import type { ApiError } from '@/lib/types';
 import { useToast } from '@/hooks/useToast';
 
 const TokenAccess = () => {
@@ -29,9 +28,7 @@ const TokenAccess = () => {
         setLoading(true);
         setTokenError(null);
         try {
-            const response = await patientApi.validateToken({ token: trimmed });
-            const data = (response.data as ApiResponse<PatientTokenContext>).data;
-            savePatientContext(data);
+            await patientApi.validateToken({ token: trimmed });
             success('Token valide');
             router.visit('/prise-rdv');
         } catch (err) {

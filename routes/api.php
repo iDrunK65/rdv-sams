@@ -33,6 +33,7 @@ Route::prefix('patient')->group(function () {
     Route::post('token/validate', [PatientTokenController::class, 'store']);
 
     Route::middleware('patient.token')->group(function () {
+        Route::get('context', [PatientTokenController::class, 'context']);
         Route::get('doctors/{doctorId}', [DoctorController::class, 'showPatient']);
         Route::get('doctors/{doctorId}/calendars', [CalendarController::class, 'patientIndex']);
         Route::get('calendars/{calendarId}/appointment-types', [AppointmentTypeController::class, 'patientIndex']);

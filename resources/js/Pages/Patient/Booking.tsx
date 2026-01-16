@@ -21,10 +21,10 @@ import type { DatesSetArg, EventClickArg, EventInput } from '@fullcalendar/core'
 
 import { PatientLayout } from '@/Layouts/PatientLayout';
 import { PatientForm } from '@/Components/patient/PatientForm';
-import { api } from '@/lib/api';
+import { api, patientApi } from '@/lib/api';
 import { formatDateTimeFR, toIsoUtc } from '@/lib/date';
-import { clearPatientContext, getPatientContext } from '@/lib/patient';
-import type { ApiResponse, AppointmentType, AvailabilitySlot, PatientInfo } from '@/lib/types';
+import { clearPatientContext } from '@/lib/patient';
+import type { ApiResponse, AppointmentType, AvailabilitySlot, PatientInfo, PatientTokenContext } from '@/lib/types';
 import { useToast } from '@/hooks/useToast';
 
 type BookingProps = {
@@ -44,7 +44,8 @@ const viewOptions = [
 type CalendarView = (typeof viewOptions)[number]['key'];
 
 const Booking = ({ calendarId }: BookingProps) => {
-    const context = getPatientContext();
+    const [context, setContext] = useState<PatientTokenContext | null>(null);
+    const [loadingContext, setLoadingContext] = useState(true);
     const doctorId = context?.doctorId || '';
     const { success, error } = useToast();
     const calendarRef = useRef<FullCalendar | null>(null);
@@ -66,6 +67,21 @@ const Booking = ({ calendarId }: BookingProps) => {
     const [viewTitle, setViewTitle] = useState('');
     const [activeView, setActiveView] = useState<CalendarView>('timeGridWeek');
     const [viewRange, setViewRange] = useState<ViewRange | null>(null);
+
+    useEffect(() => {
+        const loadContext = async () => {
+            try {
+                const response = await patientApi.getContext();
+                setContext((response.data as ApiResponse<PatientTokenContext>).data);
+            } catch {
+                setContext(null);
+            } finally {
+                setLoadingContext(false);
+            }
+        };
+
+        loadContext();
+    }, []);
 
     useEffect(() => {
         const loadTypes = async () => {
@@ -178,6 +194,17 @@ const Booking = ({ calendarId }: BookingProps) => {
             setSubmitting(false);
         }
     };
+
+    if (loadingContext) {
+        return (
+            <PatientLayout>
+                <Head title="Prise de RDV" />
+                <div className="flex justify-center py-16">
+                    <Spinner />
+                </div>
+            </PatientLayout>
+        );
+    }
 
     if (!doctorId) {
         return (

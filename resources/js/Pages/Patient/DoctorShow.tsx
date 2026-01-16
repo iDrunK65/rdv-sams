@@ -5,17 +5,32 @@ import { Button, Card, CardBody, Spinner } from '@heroui/react';
 import { PatientLayout } from '@/Layouts/PatientLayout';
 import { VmCard } from '@/Components/patient/VmCard';
 import { SpecialtyCard } from '@/Components/patient/SpecialtyCard';
-import { api } from '@/lib/api';
-import type { ApiResponse, Calendar, Doctor } from '@/lib/types';
-import { getPatientContext } from '@/lib/patient';
+import { api, patientApi } from '@/lib/api';
+import type { ApiResponse, Calendar, Doctor, PatientTokenContext } from '@/lib/types';
 
 const DoctorShow = () => {
-    const context = getPatientContext();
+    const [context, setContext] = useState<PatientTokenContext | null>(null);
+    const [loadingContext, setLoadingContext] = useState(true);
     const doctorId = context?.doctorId || '';
 
     const [doctor, setDoctor] = useState<Doctor | null>(null);
     const [calendars, setCalendars] = useState<Calendar[]>([]);
     const [loading, setLoading] = useState(true);
+
+    useEffect(() => {
+        const loadContext = async () => {
+            try {
+                const response = await patientApi.getContext();
+                setContext((response.data as ApiResponse<PatientTokenContext>).data);
+            } catch {
+                setContext(null);
+            } finally {
+                setLoadingContext(false);
+            }
+        };
+
+        loadContext();
+    }, []);
 
     useEffect(() => {
         if (!doctorId) {
@@ -24,6 +39,7 @@ const DoctorShow = () => {
         }
 
         const load = async () => {
+            setLoading(true);
             try {
                 const [doctorRes, calendarsRes] = await Promise.all([
                     api.get<ApiResponse<Doctor>>(`/api/patient/doctors/${doctorId}`),
@@ -42,6 +58,17 @@ const DoctorShow = () => {
     const handleSelect = (calendarId: string) => {
         router.visit(`/prise-rdv/${calendarId}`);
     };
+
+    if (loadingContext) {
+        return (
+            <PatientLayout>
+                <Head title="Prise de RDV" />
+                <div className="flex justify-center py-16">
+                    <Spinner size="lg" />
+                </div>
+            </PatientLayout>
+        );
+    }
 
     if (!doctorId) {
         return (
