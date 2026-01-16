@@ -344,7 +344,7 @@ const CalendarsIndex = () => {
                 start: slot.startAt,
                 end: slot.endAt,
                 display: 'background',
-                backgroundColor: color || 'rgba(56, 189, 248, 0.14)',
+                backgroundColor: color || 'rgba(56, 189, 248, 0.50)',
                 classNames: ['fc-availability-bg'],
                 extendedProps: { kind: 'availability', doctorId: slot.doctorId },
             };

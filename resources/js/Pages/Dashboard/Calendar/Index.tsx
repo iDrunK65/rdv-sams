@@ -300,7 +300,7 @@ const CalendarIndex = () => {
             start: slot.startAt,
             end: slot.endAt,
             display: 'background',
-            backgroundColor: 'rgba(56, 189, 248, 0.14)',
+            backgroundColor: 'rgba(56, 189, 248, 0.50)',
             classNames: ['fc-availability-bg'],
             extendedProps: { kind: 'availability' },
         }));

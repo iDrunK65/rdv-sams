@@ -39,7 +39,7 @@ const TokenAccess = () => {
                 error('Token invalide', message);
                 return;
             }
-            error('Token invalide ou expire');
+            error('Token invalide ou expiré');
         } finally {
             setLoading(false);
         }
@@ -49,15 +49,15 @@ const TokenAccess = () => {
         <PublicLayout
             rightSlot={
                 <Link href="/login" className="text-sm text-sams-muted hover:text-sams-text">
-                    Acces medecin
+                    Accès médecin
                 </Link>
             }
         >
-            <Head title="Acces patient" />
+            <Head title="Accès patient" />
             <div className="space-y-6">
                 <div>
                     <h1 className="text-3xl font-semibold text-sams-text">
-                        Bienvenue sur notre plateforme de RDV medical
+                        Bienvenue sur notre plateforme de RDV médical SAMS
                     </h1>
                     <p className="mt-2 text-sm text-sams-muted">Saisissez votre token temporaire.</p>
                 </div>
@@ -70,12 +70,12 @@ const TokenAccess = () => {
                             if (tokenError) setTokenError(null);
                         }}
                         isRequired
-                        placeholder="Entrer le token recu"
+                        placeholder="Entrer le token reçu"
                         isInvalid={Boolean(tokenError)}
                         errorMessage={tokenError || undefined}
                     />
                     <Button color="primary" type="submit" isLoading={loading} className="w-full">
-                        Acceder
+                        Accéder
                     </Button>
                 </form>
             </div>

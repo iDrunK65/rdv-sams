@@ -14,7 +14,7 @@ const adminItems = [
     { label: 'Dashboard admin', href: '/dashboard/admin' },
     { label: 'Comptes', href: '/dashboard/admin/comptes' },
     { label: 'Calendrier SAMS', href: '/dashboard/admin/calendrier-sams' },
-    { label: 'Specialites', href: '/dashboard/admin/specialites' },
+    { label: 'Spécialites', href: '/dashboard/admin/specialites' },
 ];
 
 export const AdminLayout = ({ children }: AdminLayoutProps) => {
